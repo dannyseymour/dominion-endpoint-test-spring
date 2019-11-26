@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/games")
+@RequestMapping("/")
 @ExposesResourceFor(Game.class)
 public class GameController {
 
@@ -45,7 +45,7 @@ public class GameController {
   }
 */
 
-  @GetMapping(value = "/state")
+  @GetMapping(value = "/gamestateinfo")
   public GameStateInfo getGameInfo(){
    Game game = new Game();
    Player player1 = new Player(1L, 10, 1, 1, 1, 0);
