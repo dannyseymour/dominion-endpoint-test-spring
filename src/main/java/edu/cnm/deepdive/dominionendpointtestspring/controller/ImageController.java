@@ -21,7 +21,7 @@ public class ImageController {
   public ResponseEntity<InputStreamResource> getImage(@PathVariable("cardType") String cardType) throws IOException {
 
 
-    ClassPathResource imgFile = new ClassPathResource("Dominion_Card_Images/"+cardType+".jpg");
+    ClassPathResource imgFile = new ClassPathResource("Dominion_Card_Images/pngs"+cardType+".png");
 
     return ResponseEntity
         .ok()
