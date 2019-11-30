@@ -38,9 +38,50 @@ public class GameController {
   }
 
   @PostMapping(value="/newgame")
-  public String newGame(){
-   stateMachine.start();
-   return stateMachine.getState().toString();
+  public GameStateInfoTransferObject newGame(){
+   stateMachine.sendEvent(GameEvents.START_GAME);
+   Game game = new Game();
+   Player player1 = new Player(1L, 10, 1, 1, 1, 0);
+   Player player2 = new Player(2L, 8, 1, 1, 1, 0);
+   List<Player> players = new ArrayList<>();
+   players.add(player1);
+   players.add(player2);
+   game.setPlayers(players);
+   GameStateInfo gameState = new GameStateInfo(game);
+   GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+   return gameStateInfoTransferObject;
+  }
+
+ @GetMapping(value="/getstate")
+ public String getState(){
+  return   stateMachine.getState().getId().toString();
+ }
+
+ @PostMapping("/endPhase")
+ public String endPhase(){
+  switch(stateMachine.getState().getId()){
+   case PLAYER_1_DISCARDING:
+    stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
+    break;
+   case PLAYER_1_ACTION:
+    stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
+    break;
+   case PLAYER_1_BUYING:
+    stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+    break;
+   case PLAYER_2_DISCARDING:
+    stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
+    break;
+   case PLAYER_2_ACTION:
+    stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
+    break;
+   case PLAYER_2_BUYING:
+    stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
+    break;
+   default:
+    return "Invalid Request";
+  }
+  return   stateMachine.getState().getId().toString();
   }
 
 
@@ -79,23 +120,19 @@ public class GameController {
        4,
        gameState.getStacks(),
        gameState.getPlaysInPreviousTurn(),
-       "Acting"
+       stateMachine.getState().getId().toString()
    );
        return gameStateInfoTransferObject;
  }
 
- @GetMapping("{gameid}/state")
+ @GetMapping("/state")
   public GameStateInfo getCurrentTurnState(@PathVariable("gameid") long gameId) {
     //TODO add filter so GameStateInfo does not return all the info on the contents of other persons hand, either deck
    // GameStateInfo gameStateInfo = new GameStateInfo(gameRepository.getGameById(gameId));
     return new GameStateInfo();
   }
 
-  @PostMapping("/endPhase")
-  public String endPhase(){
-   stateMachine.sendEvent(GameEvents.START_GAME);
-   return (stateMachine.getState().toString());
-  }
+
 
 
 
