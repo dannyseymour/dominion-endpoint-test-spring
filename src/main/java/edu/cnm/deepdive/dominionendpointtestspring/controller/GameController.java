@@ -5,7 +5,9 @@ import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfoTransferObject;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
-import edu.cnm.deepdive.dominionendpointtestspring.enums.States;
+
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -13,11 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
+import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 @ExposesResourceFor(Game.class)
 public class GameController {
-
+ @Autowired
+ private StateMachine<GameStates, GameEvents> stateMachine;
   //private final GameRepository gameRepository;
 
  @Autowired
@@ -34,6 +37,11 @@ public class GameController {
 
   }
 
+  @PostMapping(value="/newgame")
+  public String newGame(){
+   stateMachine.start();
+   return stateMachine.getState().toString();
+  }
 
 
 
@@ -82,6 +90,14 @@ public class GameController {
    // GameStateInfo gameStateInfo = new GameStateInfo(gameRepository.getGameById(gameId));
     return new GameStateInfo();
   }
+
+  @PostMapping("/endPhase")
+  public String endPhase(){
+   stateMachine.sendEvent(GameEvents.START_GAME);
+   return (stateMachine.getState().toString());
+  }
+
+
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(NoSuchElementException.class)
