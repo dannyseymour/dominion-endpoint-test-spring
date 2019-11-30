@@ -5,6 +5,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfoTransferObject;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.enums.States;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -70,7 +71,7 @@ public class GameController {
        4,
        gameState.getStacks(),
        gameState.getPlaysInPreviousTurn(),
-       gameState.getCurrentPlayerStateInfo().getPhaseState().toString()
+       "Acting"
    );
        return gameStateInfoTransferObject;
  }

@@ -27,21 +27,15 @@ public class Card implements Serializable {
     return new Card(cardName, cardType, cost);
   }
 
-     private int id;
+
 
   private CardType cardType;
 
 
 
-  private int index;
 
 
 
-  private DrawPile drawPile;
-
-  private DiscardPile discardPile;
-
-  private Hand hand;
 
   /***
    * cost of card
@@ -70,29 +64,7 @@ public class Card implements Serializable {
     this.cardType = cardType;
   }
 
-  public DrawPile getDrawPile() {
-    return drawPile;
-  }
 
-  public void setDrawPile(DrawPile drawPile) {
-    this.drawPile = drawPile;
-  }
-
-  public DiscardPile getDiscardPile() {
-    return discardPile;
-  }
-
-  public void setDiscardPile(DiscardPile discardPile) {
-    this.discardPile = discardPile;
-  }
-
-  public Hand getHand() {
-    return hand;
-  }
-
-  public void setHand(Hand hand) {
-    this.hand = hand;
-  }
 
   public void setCost(int cost) {
     this.cost = cost;
@@ -102,21 +74,7 @@ public class Card implements Serializable {
     this.cardName = cardName;
   }
 
-  public int getId() {
-    return id;
-  }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public int getIndex() {
-    return index;
-  }
-
-  public void setIndex(int index) {
-    this.index = index;
-  }
 
 
   public enum CardType {
