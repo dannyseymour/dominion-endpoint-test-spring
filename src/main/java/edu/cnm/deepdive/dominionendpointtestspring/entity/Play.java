@@ -10,6 +10,20 @@ import org.springframework.lang.NonNull;
 */
 public class Play implements Serializable {
 
+  public Play(Long id, Turn turn, Card cardPlayed) {
+    this.id = id;
+    this.turn = turn;
+    this.cardPlayed = cardPlayed;
+  }
+
+  public Play(Long id, Turn turn, int goldSpent,
+      Card cardBought) {
+    this.id = id;
+    this.turn = turn;
+    this.goldSpent = goldSpent;
+    this.cardBought = cardBought;
+  }
+
   /**
    * Each action taken by a player generates a new play. Typically, most of the fields will be null
    * or zero in the interest of separating out each action individually. Example: play: 1, Player:1,
@@ -33,7 +47,7 @@ public class Play implements Serializable {
    */
 
 
-  private int cardPlayed;
+  private Card cardPlayed;
 
   /**
    * Each play is associated with zero or more gold spent, typically to buy new cards.
@@ -46,7 +60,7 @@ public class Play implements Serializable {
    */
 
 
-  private int cardBoughtId;
+  private Card cardBought;
 
 
   public Long getId() {
@@ -65,11 +79,11 @@ public class Play implements Serializable {
     this.turn = turn;
   }
 
-  public int getCardPlayed() {
+  public Card getCardPlayed() {
     return cardPlayed;
   }
 
-  public void setCardPlayed(int cardPlayed) {
+  public void setCardPlayed(Card cardPlayed) {
     this.cardPlayed = cardPlayed;
   }
 
@@ -82,11 +96,29 @@ public class Play implements Serializable {
   }
 
 
-  public int getCardBoughtId() {
-    return cardBoughtId;
+  public Card getCardBought() {
+    return cardBought;
   }
 
-  public void setCardBoughtId(int cardBoughtId) {
-    this.cardBoughtId = cardBoughtId;
+  public void setCardBought(Card cardBought) {
+    this.cardBought = cardBought;
+  }
+
+  @Override
+  public String toString() {
+    String play;
+    if (cardPlayed != null) {
+       play = "Danny played "
+          + cardPlayed.getCardName();
+    }
+    else if (cardBought!= null){
+       play = "Danny bought "
+          + cardBought.getCardName()
+          + "for "
+          + goldSpent;
+    }else{
+      play = "No Actions or Buys";
+    }
+    return play;
   }
 }

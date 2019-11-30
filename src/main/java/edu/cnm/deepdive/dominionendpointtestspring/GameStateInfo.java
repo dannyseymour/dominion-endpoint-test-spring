@@ -2,7 +2,10 @@ package edu.cnm.deepdive.dominionendpointtestspring;
 
 
 import edu.cnm.deepdive.dominionendpointtestspring.controller.PlayController;
+import edu.cnm.deepdive.dominionendpointtestspring.entity.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.entity.Card.CardType;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.entity.Play;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Player.PlayerState;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Stack;
@@ -12,6 +15,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.enums.States;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import org.slf4j.Logger;
@@ -28,7 +32,7 @@ public class GameStateInfo implements Serializable {
   private ArrayList<Turn> previousTurns;
   private long currentPlayerId;
 //  private StateMachine stateMachine;
-  private ArrayList<Stack> stacks;
+  private HashMap<String, Integer>  stacks;
 //  private PlayRepository playRepository;
   private String[] stackTypes;
   private States states;
@@ -41,14 +45,7 @@ public class GameStateInfo implements Serializable {
     player1.setPlayerState(PlayerState.ACTION);
     player2.setPlayerState(PlayerState.WATCHING);
     this.states= States.PLAYER_1_TURN;
-    this.stacks = new ArrayList<Stack>();
-    Random rng = new Random(10);
-      stackTypes = new String[]{"Bronze", "Silver", "Gold", "Estate", "Duchy", "Province", "Cellar", "Moat",
-              "Village",
-              "Workshop", "Smithy", "Remodel", "Militia", "Market", "Mine", "Merchant", "Trash"};
-    for(int i = 0; i<stackTypes.length; i++){
-      stacks.add(new Stack(game, stackTypes[i], rng.nextInt()));
-    }
+
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
     previousTurns = new ArrayList<>();
@@ -102,6 +99,17 @@ public class GameStateInfo implements Serializable {
     return previousTurns;
   }
 
+  public List<String> getPlaysInPreviousTurn(){
+    List<String> playList = new ArrayList<>();
+    Play play1 = new Play((long) 1, new Turn(game, getPlayerStateInfoPlayer1().getPlayer()),
+        new Card("Market", CardType.MARKET, 4));
+    Play play2 = new Play((long) 2, new Turn(game, getPlayerStateInfoPlayer1().getPlayer()), 2,
+        new Card("Cellar", CardType.CELLAR, 4));
+    playList.add(play1.toString());
+    playList.add(play2.toString());
+    return playList;
+  }
+
 
  /** public void saveAll() {
     playerStateInfoPlayer2.saveAll();
@@ -113,7 +121,25 @@ public class GameStateInfo implements Serializable {
 */
 
 
-  public List<Stack> getStacks() {
+  public HashMap<String, Integer> getStacks() {
+    this.stacks = new HashMap<>();
+    stacks.put("Bronze", 10);
+    stacks.put("Silver", 8);
+    stacks.put("Gold", 7);
+    stacks.put("Estate", 10);
+    stacks.put("Duchy", 12);
+    stacks.put("Province", 15);
+    stacks.put("Cellar", 9);
+    stacks.put("Moat", 10);
+    stacks.put("Village", 5);
+    stacks.put("Workshop", 3);
+    stacks.put("Smithy", 2);
+    stacks.put("Remodel", 15);
+    stacks.put("Militia", 9);
+    stacks.put("Market", 8);
+    stacks.put("Mine", 2);
+    stacks.put("Merchant", 3);
+    stacks.put("Trash", 0);
     return stacks;
   }
 

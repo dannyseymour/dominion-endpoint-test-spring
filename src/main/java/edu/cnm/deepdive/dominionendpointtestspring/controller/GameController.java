@@ -2,6 +2,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
 
+import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfoTransferObject;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class GameController {
 */
 
   @GetMapping(value = "/gamestateinfo")
-  public GameStateInfo getGameInfo(){
+  public GameStateInfoTransferObject getGameInfo(){
    Game game = new Game();
    Player player1 = new Player(1L, 10, 1, 1, 1, 0);
    Player player2 = new Player(2L, 8, 1, 1, 1, 0);
@@ -54,10 +55,27 @@ public class GameController {
    players.add(player1);
    players.add(player2);
    game.setPlayers(players);
-    return new GameStateInfo(game);
+   GameStateInfo gameState = new GameStateInfo(game);
+   GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+    return gameStateInfoTransferObject;
   }
 
-  @GetMapping("{gameid}/state")
+ private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
+   GameStateInfoTransferObject gameStateInfoTransferObject = new GameStateInfoTransferObject(
+       gameState.getCurrentPlayerStateInfo().getHand().getCardsInHand(),
+       gameState.getCurrentPlayerStateInfo().getPlayer().getPlayerScore(),
+       gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
+       gameState.getCurrentPlayerStateInfo().getPlayer().getNumAction(),
+       gameState.getCurrentPlayerStateInfo().getPlayer().getNumBuy(),
+       4,
+       gameState.getStacks(),
+       gameState.getPlaysInPreviousTurn(),
+       gameState.getCurrentPlayerStateInfo().getPhaseState().toString()
+   );
+       return gameStateInfoTransferObject;
+ }
+
+ @GetMapping("{gameid}/state")
   public GameStateInfo getCurrentTurnState(@PathVariable("gameid") long gameId) {
     //TODO add filter so GameStateInfo does not return all the info on the contents of other persons hand, either deck
    // GameStateInfo gameStateInfo = new GameStateInfo(gameRepository.getGameById(gameId));
