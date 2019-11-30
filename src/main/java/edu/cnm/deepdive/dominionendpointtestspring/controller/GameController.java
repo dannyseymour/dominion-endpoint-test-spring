@@ -57,7 +57,7 @@ public class GameController {
   return   stateMachine.getState().getId().toString();
  }
 
- @PostMapping("/endPhase")
+ @PostMapping("/endphase")
  public String endPhase(){
   switch(stateMachine.getState().getId()){
    case PLAYER_1_DISCARDING:
