@@ -62,9 +62,9 @@ public class GameLogic {
   }
 
 
-  public GameStateInfo playCardWithCards(String cardType, Game game, Player player, ArrayList<Card> cards) {
-    GameStateInfo gameStateInfo = new GameStateInfo(game,getCurrentTurn());
-    Card playingCard = new Card(CardType.valueOf(cardType));
+  public GameStateInfo playCardWithCards(CardType cardType, Player player, ArrayList<Card> cards, GameStateInfo gameStateInfo) {
+
+    Card playingCard = new Card(cardType);
     playingCard.getCardType().play(gameStateInfo, Optional.ofNullable(cards));
     if(gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining()==0){
       endActions(gameStateInfo);
@@ -96,12 +96,12 @@ public class GameLogic {
 
 */
 
-  public GameStateInfo buyTarget(CardType cardType, Player player){
-    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), getCurrentTurn());
+  public GameStateInfo buyTarget(CardType cardType, Player player, GameStateInfo gameStateInfo){
+
     Card buyCard = new Card(cardType);
     int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()- buyCard.getCost();
     if (buyingPower < 0){
-      endTurn(getCurrentGame(), player);
+      endTurn(getCurrentGame(), player, gameStateInfo.getOtherPlayerStateInfo().getPlayer());
     }else{
       gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(buyCard);
       switch(cardType){
@@ -117,7 +117,7 @@ public class GameLogic {
       if(buysRemaining <=0){
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining);
        // gameStateInfo.saveAll();
-        endTurn(getCurrentGame(), gameStateInfo.getCurrentPlayer().get());
+        endTurn(getCurrentGame(), gameStateInfo.getCurrentPlayer().get(), gameStateInfo.getOtherPlayerStateInfo().getPlayer());
         return gameStateInfo;
       }else {
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining);
@@ -187,10 +187,10 @@ public class GameLogic {
     }
   }
 */
-  public void initTurn(Player player){
-    Turn thisTurn = new Turn(getCurrentGame(), player);
+  public void initTurn(Player thisPlayer, Player otherPlayer){
+    Turn thisTurn = new Turn(getCurrentGame(), thisPlayer);
     turnRepository.save(thisTurn);
-    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), thisTurn);
+    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), thisTurn, thisPlayer, otherPlayer);
     if(gameStateInfo.getPreviousTurns().get(thisTurn.getTurnId()-1).isDidAttack()){
       gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.MILITIA_RESPONSE);
     }else {
@@ -208,8 +208,8 @@ public class GameLogic {
    // gameStateInfo.saveAll();
   }
 
-  public void endTurn(Game game, Player player){
-    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(),getCurrentTurn());
+  public void endTurn(Game game, Player player, Player otherPlayer){
+    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(),getCurrentTurn(), player, otherPlayer);
     gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.WATCHING);
     if (gameStateInfo.getCurrentPlayer().get().getId() == 1) {
       signalMachine(GameEvents.PLAYER_1_END_BUYS);
@@ -231,5 +231,8 @@ public class GameLogic {
   }
 
 
+  public GameStateInfo militiaDiscard(ArrayList<Card> cards, Player player, GameStateInfo gameStateInfo) {
 
+    return gameStateInfo;
+  }
 }

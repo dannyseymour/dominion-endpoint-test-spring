@@ -34,13 +34,12 @@ public class GameStateInfo implements Serializable {
 
 
 
-  public GameStateInfo(Game game, Turn turn) {
+  public GameStateInfo(Game game, Turn turn, Player player1, Player player2) {
 
     this.game=game;
     this.thisTurn = turn;
     this.stacks = game.getStacks();
-    Player player1 = new Player ("Erica");
-    Player player2= new Player("Danny");
+
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
     previousTurns = new ArrayList<>();
@@ -119,8 +118,15 @@ public class GameStateInfo implements Serializable {
     return playList;
   }
 
-
-
+  public PlayerStateInfo getOtherPlayerStateInfo() {
+    switch((int) currentPlayerId) {
+      case 1:
+        return playerStateInfoPlayer2;
+      case 2:
+        return playerStateInfoPlayer1;
+    }
+    return null;
+  }
 
 
   public enum StackTypes {

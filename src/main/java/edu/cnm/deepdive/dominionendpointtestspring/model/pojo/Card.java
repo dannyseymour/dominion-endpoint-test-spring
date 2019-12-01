@@ -559,7 +559,9 @@ public class Card implements Serializable {
 
         int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().getTurn().getBuyingPower();
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuyingPower(buyingPower + 2);
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setDidAttack(true);
+        if (!(gameStateInfo.getOtherPlayerStateInfo().getPlayer().isHasMoat())){
+          gameStateInfo.getCurrentPlayerStateInfo().getTurn().setDidAttack(true);
+        }
         return gameStateInfo;
       }
 

@@ -2,6 +2,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -32,6 +33,8 @@ public class Turn implements Serializable {
     //this.playerId = player.getId();
     this.buysRemaining = 1;
     this.actionsRemaining = 1;
+    this.player = player;
+
    // this.gameId = game.getId();
   }
 
@@ -53,19 +56,17 @@ public class Turn implements Serializable {
 */
   @Column(name="buying_power")
   private int buyingPower;
-/**
+
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "player_id", nullable = false, updatable = false)
-  private long playerId;
-  */
-/**
-  @OneToMany(mappedBy = "turn_id", cascade = CascadeType.ALL,
+  private Player player;
+
+  @OneToMany(mappedBy = "turn", cascade = CascadeType.ALL,
       orphanRemoval = true)
   @OrderBy("play_id ASC")
   private List<Play> plays = new LinkedList<>();
 
-**/
 /**
   public long getPlayerId() {
     return playerId;
@@ -86,6 +87,15 @@ public class Turn implements Serializable {
 
   @Column(name="did_attack")
   private boolean didAttack;
+
+  public List<Play> getPlays() {
+    return plays;
+  }
+
+  public void setPlays(
+     List<Play> plays) {
+    this.plays = plays;
+  }
 
   /**
    * Actions Remaining- a counter that iterates down to zero. When it returns zero, a method is

@@ -3,12 +3,16 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 
@@ -19,13 +23,12 @@ import javax.persistence.Table;
 @Table
 public class Player implements Serializable {
 
-  public Player(String userName) {
-
+  public Player(String userName, long id) {
+this.id = id;
 this.userName = userName;
   }
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name="player_id", updatable = false, nullable = false)
   private Long id;
 
@@ -61,9 +64,23 @@ this.userName = userName;
       ArrayList<Card> playerDrawPile) {
     this.playerDrawPile = playerDrawPile;
   }
+/**
+  @OneToMany(mappedBy = "player", cascade = CascadeType.ALL,
+      orphanRemoval = true)
+  @OrderBy("game_id ASC")
+  private ArrayList<Game> games = new ArrayList<>();
+*/
+  @OneToMany(mappedBy = "player", cascade = CascadeType.ALL,
+      orphanRemoval = true)
+  @OrderBy("turn_id, player_id ASC")
+  private List<Turn> turns = new LinkedList<>();
 
+  @OneToMany(mappedBy = "player", cascade = CascadeType.ALL,
+      orphanRemoval = true)
+  @OrderBy("play_id, player_id ASC")
+  private List<Play> plays = new LinkedList<>();
 
-
+  @Column(name="has_moat")
   private boolean hasMoat;
 
   /**
@@ -78,7 +95,8 @@ this.userName = userName;
    * LinkedList<>();
    */
 
-  private PlayerState playerState;
+  @Column(name="player_state")
+  private String playerState;
 
 
   /**@OneToMany(mappedBy= "deck", cascade = CascadeType.ALL)
@@ -109,12 +127,12 @@ this.userName = userName;
 
 
 
-  public PlayerState getPlayerState() {
+  public String getPlayerState() {
     return playerState;
   }
 
   public void setPlayerState(PlayerState playerState) {
-    this.playerState = playerState;
+    this.playerState = playerState.toString();
   }
 
   /** public void setDeck(List<Card> deck) {
@@ -182,6 +200,45 @@ this.userName = userName;
    *
    * @return the player's number of buys.
    */
+
+  public String getUserName() {
+    return userName;
+  }
+
+  public void setUserName(String userName) {
+    this.userName = userName;
+  }
+/**
+  public ArrayList<Game> getGames() {
+    return games;
+  }
+
+  public void setGames(
+      ArrayList<Game> games) {
+    this.games = games;
+  }
+*/
+  public List<Turn> getTurns() {
+    return turns;
+  }
+
+  public void setTurns(
+      List<Turn> turns) {
+    this.turns = turns;
+  }
+
+  public List<Play> getPlays() {
+    return plays;
+  }
+
+  public void setPlays(
+      List<Play> plays) {
+    this.plays = plays;
+  }
+
+  public void setPlayerState(String playerState) {
+    this.playerState = playerState;
+  }
 
   /**
    * Sets num buy.

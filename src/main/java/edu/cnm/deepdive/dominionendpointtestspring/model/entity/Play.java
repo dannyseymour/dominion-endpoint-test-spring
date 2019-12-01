@@ -54,12 +54,17 @@ public class Play implements Serializable {
    * Each action taken by a player generates a new play. Typically, most of the fields will be null
    * or zero in the interest of separating out each action individually.
    */
-  /**
+
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER, optional = false)
   @JoinColumn(name = "turn_id", updatable = false)
-  private int turnId;
-*/
+  private Turn turn;
+
+  @NonNull
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
+  @JoinColumn(name = "player_id", updatable = false)
+  private Player player;
+
   /**
    * Each play is a associated with zero or more cards played. This records a log of which card was
    * played and when.
