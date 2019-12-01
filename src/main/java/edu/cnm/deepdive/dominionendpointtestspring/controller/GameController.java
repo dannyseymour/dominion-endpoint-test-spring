@@ -31,6 +31,7 @@ public class GameController {
  private StateMachine<GameStates, GameEvents> stateMachine;
   //private final GameRepository gameRepository;
 
+ @Autowired
   private GameLogic gameLogic;
  @Autowired
   public GameController() {
