@@ -53,7 +53,7 @@ public class GameController {
 
   }
 
-  @PostMapping(value = "/newgame")
+
   public GameStateInfoTransferObject newGame() {
     GameStateInfo gameState = startNewGame();
     return buildTransferObject(gameState);
@@ -248,9 +248,34 @@ public class GameController {
     GameParameters.setCurrentTurn(turn);
     turnRepository.save(turn);
   }
-
   @GetMapping(value = "/gamestateinfo")
-  public GameStateInfoTransferObject getGameInfo() {
+  public GameStateInfoTransferObject getGameState() {
+    GameStateInfo gameState;
+    //gameState = startNewGame();
+    GameParameters.setPlayer1(new Player("Danny", 1L));
+    GameParameters.setPlayer2(new Player("Erica", 2L));
+    Game game = new Game("Danny", "Erica");
+    //gameRepository.save(game);
+    GameParameters.setCurrentGame(game);
+    Turn firstTurn = new Turn(game, gameParameters.getPlayer1());
+    GameParameters.setCurrentTurn(firstTurn);
+    //turnRepository.save(firstTurn);
+    GameParameters.setCurrentPlayer(gameParameters.getPlayer1());
+    stateMachine.sendEvent(GameEvents.START_GAME);
+    GameParameters.setStacks(initializeStacks());
+    gameState = new GameStateInfo(game, GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
+    /** if (GameParameters.getCurrentGame() == null) {
+     gameState = startNewGame();
+     } else {
+     gameState = new GameStateInfo(GameParameters.getCurrentGame(),
+     GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
+     }*/
+    GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "You need to discard before taking actions!");
+    return gameStateInfoTransferObject;
+  }
+
+  @PostMapping(value = "/newgame")
+  public GameStateInfoTransferObject getNewGame() {
     GameStateInfo gameState;
     //gameState = startNewGame();
     GameParameters.setPlayer1(new Player("Danny", 1L));
@@ -275,6 +300,7 @@ public class GameController {
     return gameStateInfoTransferObject;
   }
 
+
   private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
     GameStateInfoTransferObject transfer = new GameStateInfoTransferObject(
         gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
@@ -285,8 +311,8 @@ public class GameController {
         gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
         GameParameters.getStacks(),
         gameState.getPlaysInPreviousTurn(),
-        "Discarding",
-        true
+        "Acting",
+        false
     );
     return transfer;
   }
