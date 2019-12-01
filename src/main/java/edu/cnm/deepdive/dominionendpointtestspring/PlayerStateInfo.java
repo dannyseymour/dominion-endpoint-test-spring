@@ -1,15 +1,14 @@
 package edu.cnm.deepdive.dominionendpointtestspring;
 
 
-import edu.cnm.deepdive.dominionendpointtestspring.controller.PlayController;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Card;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Card.CardType;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.DiscardPile;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.DrawPile;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Hand;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Turn;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.DiscardPile;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.DrawPile;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Hand;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
 import java.io.Serializable;
 import java.util.ArrayList;
 import org.slf4j.Logger;

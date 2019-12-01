@@ -3,13 +3,15 @@ package edu.cnm.deepdive.dominionendpointtestspring.controller;
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
 
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfoTransferObject;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 
+import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +35,7 @@ public class GameController {
  private StateMachine<GameStates, GameEvents> stateMachine;
   //private final GameRepository gameRepository;
 
+  private GameLogic gameLogic;
  @Autowired
   public GameController() {
 
@@ -40,25 +44,30 @@ public class GameController {
   @PostMapping(value="/newgame")
   public GameStateInfoTransferObject newGame(){
    stateMachine.sendEvent(GameEvents.START_GAME);
-   Game game = new Game();
-   Player player1 = new Player(1L, 10, 1, 1, 1, 0);
-   Player player2 = new Player(2L, 8, 1, 1, 1, 0);
-   List<Player> players = new ArrayList<>();
-   players.add(player1);
-   players.add(player2);
-   game.setPlayers(players);
-   GameStateInfo gameState = new GameStateInfo(game);
-   GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+   GameStateInfoTransferObject gameStateInfoTransferObject = setupDummyGame();
    return gameStateInfoTransferObject;
   }
+
+ private GameStateInfoTransferObject setupDummyGame() {
+  Game game = new Game();
+  Player player1 = new Player(1L, "Erica");
+  Player player2 = new Player(2L, "Danny");
+  ArrayList<Player> players = new ArrayList<>();
+  players.add(player1);
+  players.add(player2);
+  game.setPlayers(players);
+  GameStateInfo gameState = new GameStateInfo(game, stateMachine.getState().getId());
+  return buildTransferObject(gameState);
+ }
 
  @GetMapping(value="/getstate")
  public String getState(){
   return   stateMachine.getState().getId().toString();
  }
 
- @PostMapping("/endphase")
- public String endPhase(){
+ @PostMapping("/{gameid}/{playerid}/endphase")
+ public String endPhase(@PathVariable("gameid") long gameId, @PathVariable("playerid")long playerId){
+  boolean isOver;
   switch(stateMachine.getState().getId()){
    case PLAYER_1_DISCARDING:
     stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
@@ -67,7 +76,12 @@ public class GameController {
     stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
     break;
    case PLAYER_1_BUYING:
-    stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+    isOver = gameLogic.testForVictory();
+    if (isOver) {
+     stateMachine.sendEvent(GameEvents.END_GAME);
+    } else {
+     stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+    }
     break;
    case PLAYER_2_DISCARDING:
     stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
@@ -76,7 +90,12 @@ public class GameController {
     stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
     break;
    case PLAYER_2_BUYING:
-    stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
+     isOver = gameLogic.testForVictory();
+    if (isOver) {
+     stateMachine.sendEvent(GameEvents.END_GAME);
+    } else {
+     stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
+    }
     break;
    default:
     return "Invalid Request";
@@ -98,16 +117,8 @@ public class GameController {
 
   @GetMapping(value = "/gamestateinfo")
   public GameStateInfoTransferObject getGameInfo(){
-   Game game = new Game();
-   Player player1 = new Player(1L, 10, 1, 1, 1, 0);
-   Player player2 = new Player(2L, 8, 1, 1, 1, 0);
-   List<Player> players = new ArrayList<>();
-   players.add(player1);
-   players.add(player2);
-   game.setPlayers(players);
-   GameStateInfo gameState = new GameStateInfo(game);
-   GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
-    return gameStateInfoTransferObject;
+   GameStateInfoTransferObject gameStateInfoTransferObject = setupDummyGame();
+   return gameStateInfoTransferObject;
   }
 
  private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
@@ -134,6 +145,28 @@ public class GameController {
 
 
 
+ @PostMapping("/{cardid}/action")
+ public GameStateInfo playCard(@PathVariable long gameId, int playerId, int cardId,
+     @RequestBody ArrayList<Card> cards){
+  return new GameStateInfo();
+  /**if (cards == null){
+   return gameLogic.playCardWithCards(cardId, gameId, playerId, null);
+   }else {
+   return gameLogic.playCardWithCards(cardId, gameId, playerId, cards);
+   }*/
+ }
+
+ @PostMapping("{cardid}/buy")
+ public GameStateInfo playerBuysTarget(@PathVariable int gameId, int playerId, CardType cardType ){
+  //return gameLogic.buyTarget(cardType, playerId, gameId);
+  return new GameStateInfo();
+ }
+
+ @PostMapping("/endphase")
+ public GameStateInfo playerEndsPhase(@PathVariable int gameId, int playerId, String phaseState){
+  //return gameLogic.playerEndsPhase(gameId, playerId, phaseState);
+  return new GameStateInfo();
+ }
 
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

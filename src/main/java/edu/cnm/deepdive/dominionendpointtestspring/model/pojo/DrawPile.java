@@ -1,4 +1,4 @@
-package edu.cnm.deepdive.dominionendpointtestspring.entity;
+package edu.cnm.deepdive.dominionendpointtestspring.model.pojo;
 
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
 

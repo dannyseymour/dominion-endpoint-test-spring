@@ -1,7 +1,5 @@
 package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Card.CardType;
-
 import java.io.IOException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;

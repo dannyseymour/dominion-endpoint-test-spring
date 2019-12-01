@@ -1,4 +1,4 @@
-package edu.cnm.deepdive.dominionendpointtestspring.entity;
+package edu.cnm.deepdive.dominionendpointtestspring.model.pojo;
 
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
 import java.io.Serializable;
@@ -9,33 +9,28 @@ import org.springframework.lang.NonNull;
 public class Card implements Serializable {
 //  private final CardRepository cardRepository;
 
-  public Card(String cardName, CardType cardType, int cost) {
-    this.cardName = cardName;
-    this.cardType = cardType;
-    this.cost = cost;
-  }
+
 
   public Card(CardType cardType) {
     this.cardType = cardType;
+    this.cost = cardType.getCost();
+    this.cardName = cardType.toString();
+    this.moneyValue = cardType.getMoneyValue();
+    this.extraGoldIfSilver = cardType.getExtraGoldIfSilver();
+    this.victoryPoints = cardType.getVictoryPoints();
+
 
     //TODO implement constructor using card type
     //need to get info from database do not understand this
-  }
-
-  //Static factory method to make card
-  public Card newCard(String cardName, CardType cardType, int cost) {
-    return new Card(cardName, cardType, cost);
   }
 
 
 
   private CardType cardType;
 
+  private int victoryPoints;
 
-
-
-
-
+  private int extraGoldIfSilver;
 
   /***
    * cost of card
@@ -47,6 +42,7 @@ public class Card implements Serializable {
    */
 
   private String cardName;
+  private int moneyValue;
 
   public int getCost() {
     return cost;
@@ -84,6 +80,26 @@ public class Card implements Serializable {
           List<Card> additionalCards) {}
 
       @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
+      @Override
       public String toString() {
         return "Copper";
       }
@@ -92,6 +108,27 @@ public class Card implements Serializable {
       @Override
       public void play(GameStateInfo gameStateInfo,
           List<Card> additionalCards) {}
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Silver";
@@ -101,6 +138,27 @@ public class Card implements Serializable {
       @Override
       public void play(GameStateInfo gameStateInfo,
           List<Card> additionalCards) {}
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Gold";
@@ -110,6 +168,27 @@ public class Card implements Serializable {
       @Override
       public void play(GameStateInfo gameStateInfo,
           List<Card> additionalCards) {}
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Estate";
@@ -119,6 +198,27 @@ public class Card implements Serializable {
       @Override
       public void play(GameStateInfo gameStateInfo,
           List<Card> additionalCards) {}
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Duchy";
@@ -128,6 +228,27 @@ public class Card implements Serializable {
       @Override
       public void play(GameStateInfo gameStateInfo,
           List<Card> additionalCards) {}
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Province";
@@ -157,6 +278,27 @@ public class Card implements Serializable {
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining + 1);
 */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Cellar";
@@ -175,6 +317,27 @@ public class Card implements Serializable {
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
          */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Moat";
@@ -202,6 +365,27 @@ public class Card implements Serializable {
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuyingPower(buyingPower + 1);
          */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Market";
@@ -224,6 +408,27 @@ public class Card implements Serializable {
         //TODO add gold when playing silver
 */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Merchant";
@@ -241,6 +446,27 @@ public class Card implements Serializable {
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuyingPower(buyingPower + 2);
          */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Militia";
@@ -262,6 +488,27 @@ public class Card implements Serializable {
         //TODO Gain a Treasure to your hand costing up to 3 more than it
          */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Mine";
@@ -282,6 +529,27 @@ public class Card implements Serializable {
         //TODO Gain a card costing up to 2 more gold than the one you trashed.
 */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Remodel";
@@ -302,6 +570,27 @@ public class Card implements Serializable {
         gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
          */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Smithy";
@@ -322,6 +611,27 @@ public class Card implements Serializable {
 
 */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Village";
@@ -338,6 +648,27 @@ public class Card implements Serializable {
         //TODO Gain card costing up to 4 gold
  */
       }
+
+      @Override
+      public int getCost() {
+        return 0;
+      }
+
+      @Override
+      public int getVictoryPoints() {
+        return 0;
+      }
+
+      @Override
+      public int getExtraGoldIfSilver() {
+        return 0;
+      }
+
+      @Override
+      public int getMoneyValue() {
+        return 0;
+      }
+
       @Override
       public String toString() {
         return "Workshop";
@@ -347,7 +678,11 @@ public class Card implements Serializable {
 
     public abstract void play(GameStateInfo gameStateInfo,
         List<Card> additionalCards);
-
+      public abstract int getCost();
+      public abstract int getVictoryPoints();
+      public abstract int getExtraGoldIfSilver();
+      public abstract int getMoneyValue();
   }
+
 
 }

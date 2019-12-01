@@ -1,8 +1,6 @@
 package edu.cnm.deepdive.dominionendpointtestspring;
 
-import edu.cnm.deepdive.dominionendpointtestspring.PlayerStateInfo.PhaseState;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Card;
-import java.util.Dictionary;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
 import java.util.HashMap;
 import java.util.List;
 

@@ -1,23 +1,19 @@
 package edu.cnm.deepdive.dominionendpointtestspring;
 
 
-import edu.cnm.deepdive.dominionendpointtestspring.controller.PlayController;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Card;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Card.CardType;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Game;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Play;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Player;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Player.PlayerState;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Stack;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Stack.StackType;
-import edu.cnm.deepdive.dominionendpointtestspring.entity.Turn;
-import edu.cnm.deepdive.dominionendpointtestspring.enums.States;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Play;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player.PlayerState;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Stack;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,27 +27,25 @@ public class GameStateInfo implements Serializable {
   private Game game;
   private ArrayList<Turn> previousTurns;
   private long currentPlayerId;
-//  private StateMachine stateMachine;
   private HashMap<String, Integer>  stacks;
 //  private PlayRepository playRepository;
   private String[] stackTypes;
-  private States states;
+
+  private GameStates currentGameState;
 
 
-  public GameStateInfo(Game game) {
+  public GameStateInfo(Game game, GameStates currentGameState) {
     this.game=game;
+    this.currentGameState = currentGameState;
     Player player1 = game.getPlayers().get(0);
     Player player2= game.getPlayers().get(1);
     player1.setPlayerState(PlayerState.ACTION);
     player2.setPlayerState(PlayerState.WATCHING);
-    this.states= States.PLAYER_1_TURN;
 
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
     previousTurns = new ArrayList<>();
     previousTurns.add(new Turn(game, player1));
-    //go out to state machine and get who is playing
-    //State state = stateMachine.getState();
       currentPlayerId = 1;
   }
 

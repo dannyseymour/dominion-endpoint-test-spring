@@ -1,4 +1,4 @@
-package edu.cnm.deepdive.dominionendpointtestspring.entity;
+package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 
 import java.io.Serializable;

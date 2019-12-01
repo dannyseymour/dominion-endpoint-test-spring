@@ -1,7 +1,11 @@
-package edu.cnm.deepdive.dominionendpointtestspring.entity;
+package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
 import java.io.Serializable;
 import java.util.List;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
 
 /**
@@ -10,17 +14,12 @@ import java.util.List;
 
 public class Player implements Serializable {
 
-  public Player(Long id, int playerScore, int extraGold, int numAction, int numBuy,
-      int extraGoldIfSilver) {
+  public Player(Long id, String userName) {
     this.id = id;
 
-    this.playerScore = playerScore;
-    this.extraGold = extraGold;
-    this.numAction = numAction;
-    this.numBuy = numBuy;
-    this.extraGoldIfSilver = extraGoldIfSilver;
   }
-
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
 

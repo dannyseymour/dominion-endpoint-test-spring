@@ -1,9 +1,7 @@
-package edu.cnm.deepdive.dominionendpointtestspring.entity;
+package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 
 import java.io.Serializable;
-
-import org.springframework.lang.NonNull;
 
 /**
  * Keeps a log of the significant player actions taken during each turn, sorted by player and turn.
