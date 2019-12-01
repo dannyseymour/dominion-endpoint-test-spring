@@ -66,7 +66,7 @@ public class GameLogic {
     GameStateInfo gameStateInfo = new GameStateInfo(game,getCurrentTurn());
     Card playingCard = new Card(CardType.valueOf(cardType));
     playingCard.getCardType().play(gameStateInfo, Optional.ofNullable(cards));
-    if(gameStateInfo.getCurrentPlayerStateInfo().getPlayer().getNumAction()==0){
+    if(gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining()==0){
       endActions(gameStateInfo);
       gameStateInfo.getCurrentPlayerStateInfo().setPhaseState(GameStates.PLAYER_1_BUYING);
       signalMachine(GameEvents.PLAYER_1_END_ACTIONS);
@@ -96,12 +96,12 @@ public class GameLogic {
 
 */
 
-  public GameStateInfo buyTarget(CardType cardType, int playerId){
+  public GameStateInfo buyTarget(CardType cardType, Player player){
     GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), getCurrentTurn());
     Card buyCard = new Card(cardType);
     int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()- buyCard.getCost();
     if (buyingPower < 0){
-      endTurn(getCurrentGame(), playerRepository.getPlayerById((long) playerId).get());
+      endTurn(getCurrentGame(), player);
     }else{
       gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(buyCard);
       switch(cardType){
@@ -115,13 +115,13 @@ public class GameLogic {
       }
       int buysRemaining = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()-1;
       if(buysRemaining <=0){
-        gameStateInfo.getCurrentPlayerStateInfo().getPlayer().setNumBuy(buysRemaining);
+        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining);
        // gameStateInfo.saveAll();
         endTurn(getCurrentGame(), gameStateInfo.getCurrentPlayer().get());
         return gameStateInfo;
       }else {
-        gameStateInfo.getCurrentPlayerStateInfo().getPlayer().setNumBuy(buysRemaining);
-      //  gameStateInfo.saveAll();
+        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining);
+
         return gameStateInfo;
       }
     }

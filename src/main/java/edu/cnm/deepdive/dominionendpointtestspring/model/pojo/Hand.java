@@ -31,7 +31,7 @@ public class Hand {
   private Game game;
 
 
-  private List<Card> cards;
+  private ArrayList<Card> cards;
 
   public void discardFromHand(List<Card> cards){
     for (int i =0; i<cards.size(); i++){
@@ -45,12 +45,12 @@ public class Hand {
   }
 
 
-  public List<Card> draw(DrawPile drawPile, GameStateInfo gameStateInfo){
+  public ArrayList<Card> draw(DrawPile drawPile, GameStateInfo gameStateInfo){
     cardsInHand.add(drawPile.getTopCard(gameStateInfo));
     return cardsInHand;
   }
 
-  public List<Card> draw(DrawPile drawPile, GameStateInfo gameStateInfo, int numOfCards){
+  public ArrayList<Card> draw(DrawPile drawPile, GameStateInfo gameStateInfo, int numOfCards){
     for (int i = 0; i < numOfCards; i++) {
       draw(drawPile, gameStateInfo);
     }
@@ -65,7 +65,7 @@ public class Hand {
     this.cardRepository = cardRepository;
   }
 */
-  public List<Card> getCardsInHand() {
+  public ArrayList<Card> getCardsInHand() {
     return cardsInHand;
   }
 
@@ -96,11 +96,15 @@ public class Hand {
   }
 
 
-  public List<Card> getCards() {
+  public ArrayList<Card> getCards() {
     return cards;
   }
 
-  public void setCards(List<Card> cards) {
-    this.cards = cards;
+  public void setCards(ArrayList<Card> cards) {
+    this.cards =  cards;
   }
+
+  public void trashCard(Card card) {
+      cardsInHand.remove(card);
+    }
 }

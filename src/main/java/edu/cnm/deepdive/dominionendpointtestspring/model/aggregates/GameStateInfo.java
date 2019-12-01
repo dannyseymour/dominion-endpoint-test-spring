@@ -41,8 +41,6 @@ public class GameStateInfo implements Serializable {
     this.stacks = game.getStacks();
     Player player1 = new Player ("Erica");
     Player player2= new Player("Danny");
-    intializePlayer(player1);
-    intializePlayer(player2);
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
     previousTurns = new ArrayList<>();
@@ -52,10 +50,6 @@ public class GameStateInfo implements Serializable {
 
   }
 
-  private void intializePlayer(Player player) {
-    player.setNumBuy(1);
-    player.setNumAction(1);
-  }
 
   public PlayerStateInfo getCurrentPlayerStateInfo(){
     switch((int) currentPlayerId) {

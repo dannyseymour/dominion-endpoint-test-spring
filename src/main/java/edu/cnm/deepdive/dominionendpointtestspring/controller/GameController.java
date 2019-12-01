@@ -102,118 +102,146 @@ public class GameController {
   }
 
   @PostMapping("/{playerid}/endphase")
-  public String endPhase(@PathVariable("playerid") long playerId) {
-    boolean isOver;
-    Turn turn = GameParameters.getCurrentTurn();
-    switch (stateMachine.getState().getId()) {
-      case PLAYER_1_DISCARDING:
-        if (playerId==1L) {
-          stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
-        } else{
-          return "Invalid action";
-        }
-        break;
-      case PLAYER_1_ACTION:
-        if (playerId==1L) {
-          stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
-        } else{
-          return "Invalid action";
-        }
-        break;
-      case PLAYER_1_BUYING:
-        if (playerId==1L) {
-          isOver = gameLogic.testForVictory();
-          if (isOver) {
-            stateMachine.sendEvent(GameEvents.END_GAME);
-          } else {
-            stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
-            turn = new Turn(GameParameters.getCurrentGame(),
-               GameParameters.getCurrentPlayer());
-            GameParameters.setCurrentPlayer(GameParameters.getPlayer2());
-            GameParameters.setCurrentTurn(turn);
-            turnRepository.save(turn);
-          }
-        } else{
-          return "Invalid action";
-        }
-        break;
-      case PLAYER_2_DISCARDING:
-        if (playerId==2L) {
-          stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-        } else{
-          return "Invalid action";
-        }
-        break;
-      case PLAYER_2_ACTION:
-        if (playerId==2L) {
-          stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
-        } else{
-          return "Invalid action";
-        }
-        break;
-      case PLAYER_2_BUYING:
-        if (playerId==2L) {
-          isOver = gameLogic.testForVictory();
-          if (isOver) {
-            stateMachine.sendEvent(GameEvents.END_GAME);
-          } else {
-            stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
-            turn = new Turn(GameParameters.getCurrentGame(),
-                GameParameters.getCurrentPlayer());
-            GameParameters.setCurrentPlayer(GameParameters.getPlayer1());
-            GameParameters.setCurrentTurn(turn);
-            turnRepository.save(turn);
-          }
-        } else{
-          return "Invalid action";
-        }
-        break;
-      default:
-        return "Invalid Request";
+ public String endPhase(@PathVariable("playerid") long playerId) {
+  boolean isOver;
+  Turn turn = GameParameters.getCurrentTurn();
+  switch (stateMachine.getState().getId()) {
+   case PLAYER_1_DISCARDING:
+    if (playerId==1L) {
+     stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
+    } else{
+     return "Invalid action";
     }
-    GameParameters.setCurrentState(stateMachine.getState().getId());
-    return "Turn: " + turn.getTurnId() + stateMachine.getState().getId().toString();
-  }
-/**
-  @PostMapping("/endphase")
-  public String endPhase() {
-    boolean isOver;
-    switch (stateMachine.getState().getId()) {
-      case PLAYER_1_DISCARDING:
-        stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
-        break;
-      case PLAYER_1_ACTION:
-        stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
-        break;
-      case PLAYER_1_BUYING:
-        isOver = gameLogic.testForVictory();
-        if (isOver) {
-          stateMachine.sendEvent(GameEvents.END_GAME);
-        } else {
-          stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
-        }
-        break;
-      case PLAYER_2_DISCARDING:
-        stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-        break;
-      case PLAYER_2_ACTION:
-        stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
-        break;
-      case PLAYER_2_BUYING:
-        isOver = gameLogic.testForVictory();
-        if (isOver) {
-          stateMachine.sendEvent(GameEvents.END_GAME);
-        } else {
-          stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
-        }
-        break;
-      default:
-        return "Invalid Request";
+    break;
+   case PLAYER_1_ACTION:
+    if (playerId==1L) {
+     stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
+    } else{
+     return "Invalid action";
     }
-    return stateMachine.getState().getId().toString();
+    break;
+   case PLAYER_1_BUYING:
+    if (playerId==1L) {
+     isOver = gameLogic.testForVictory();
+     if (isOver) {
+      stateMachine.sendEvent(GameEvents.END_GAME);
+     } else {
+      stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+      turn = new Turn(GameParameters.getCurrentGame(),
+          GameParameters.getCurrentPlayer());
+      GameParameters.setCurrentPlayer(GameParameters.getPlayer2());
+      GameParameters.setCurrentTurn(turn);
+      turnRepository.save(turn);
+     }
+    } else{
+     return "Invalid action";
+    }
+    break;
+   case PLAYER_2_DISCARDING:
+    if (playerId==2L) {
+     stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
+    } else{
+     return "Invalid action";
+    }
+    break;
+   case PLAYER_2_ACTION:
+    if (playerId==2L) {
+     stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
+    } else{
+     return "Invalid action";
+    }
+    break;
+   case PLAYER_2_BUYING:
+    if (playerId==2L) {
+     isOver = gameLogic.testForVictory();
+     if (isOver) {
+      stateMachine.sendEvent(GameEvents.END_GAME);
+     } else {
+      stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
+      turn = new Turn(GameParameters.getCurrentGame(),
+          GameParameters.getCurrentPlayer());
+      GameParameters.setCurrentPlayer(GameParameters.getPlayer1());
+      GameParameters.setCurrentTurn(turn);
+      turnRepository.save(turn);
+     }
+    } else{
+     return "Invalid action";
+    }
+    break;
+   default:
+    return "Invalid Request";
   }
-*/
+  GameParameters.setCurrentState(stateMachine.getState().getId());
+  return "Turn: " + turn.getTurnId() + stateMachine.getState().getId().toString();
+ }
+ @PostMapping("/endphase")
+ public GameStateInfoTransferObject endPhase() {
+  boolean isOver;
+  Turn turn = GameParameters.getCurrentTurn();
+  switch (stateMachine.getState().getId()) {
+   case PLAYER_1_DISCARDING:
 
+     stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
+    break;
+   case PLAYER_1_ACTION:
+     stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
+
+    break;
+   case PLAYER_1_BUYING:
+
+     isOver = gameLogic.testForVictory();
+     if (isOver) {
+      stateMachine.sendEvent(GameEvents.END_GAME);
+     } else {
+
+      if (GameParameters.getCurrentTurn().isDidAttack()){
+        stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+      }else{
+        stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
+      }
+     createNewTurn();
+     }
+
+    break;
+   case PLAYER_2_DISCARDING:
+
+     stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
+
+    break;
+   case PLAYER_2_ACTION:
+
+     stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
+
+    break;
+   case PLAYER_2_BUYING:
+     isOver = gameLogic.testForVictory();
+     if (isOver) {
+      stateMachine.sendEvent(GameEvents.END_GAME);
+     } else {
+
+       if (GameParameters.getCurrentTurn().isDidAttack()) {
+         stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+       } else {
+         stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
+       }
+       createNewTurn();
+     }
+    break;
+   default:
+    break;
+  }
+  GameParameters.setCurrentState(stateMachine.getState().getId());
+ GameStateInfo gameState = new GameStateInfo(GameParameters.getCurrentGame(), GameParameters.getCurrentTurn());
+  GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+  return gameStateInfoTransferObject;
+ }
+private void createNewTurn(){
+  Turn turn = new Turn(GameParameters.getCurrentGame(),
+      GameParameters.getCurrentPlayer());
+  GameParameters.setCurrentPlayer(GameParameters.getPlayer1());
+  GameParameters.setCurrentTurn(turn);
+  turnRepository.save(turn);
+}
   @GetMapping(value = "/gamestateinfo")
   public GameStateInfoTransferObject getGameInfo() {
    GameStateInfo gameState;
@@ -231,8 +259,8 @@ public class GameController {
         gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
         gameState.getPlayerStateInfoPlayer1().getPlayer().getPlayerScore(),
         gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
-        gameState.getPlayerStateInfoPlayer1().getPlayer().getNumAction(),
-        gameState.getPlayerStateInfoPlayer1().getPlayer().getNumBuy(),
+        gameState.getPlayerStateInfoPlayer1().getTurn().getActionsRemaining(),
+        gameState.getPlayerStateInfoPlayer1().getTurn().getBuysRemaining(),
         gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
         GameParameters.getStacks(),
         gameState.getPlaysInPreviousTurn(),
@@ -240,7 +268,22 @@ public class GameController {
     );
     return transfer;
   }
-
+ private GameStateInfoTransferObject buildTransferObjectWithWrapper(GameStateInfo gameState, boolean wasSuccessful, String message) {
+  GameStateInfoTransferObject transfer = new GameStateInfoTransferObject(
+      gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
+      gameState.getPlayerStateInfoPlayer1().getPlayer().getPlayerScore(),
+      gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
+      gameState.getPlayerStateInfoPlayer1().getTurn().getActionsRemaining(),
+      gameState.getPlayerStateInfoPlayer1().getTurn().getBuysRemaining(),
+      gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
+      GameParameters.getStacks(),
+      gameState.getPlaysInPreviousTurn(),
+      this.stateMachine.getState().getId().toString(),
+      message,
+      wasSuccessful
+  );
+  return transfer;
+ }
 
 
 

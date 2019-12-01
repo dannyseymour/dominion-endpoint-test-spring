@@ -35,9 +35,6 @@ this.userName = userName;
   @Column(name = "player_score")
   private int playerScore;
 
-  @Column(name = "extra_gold")
-  private int extraGold;
-
   @Column(name = "cards_in_hand", nullable = true)
   private ArrayList<Card> playerHand;
   @Column(name = "cards_in_discard", nullable = true)
@@ -45,13 +42,7 @@ this.userName = userName;
   @Column(name = "cards_in_draw_pile", nullable = true)
   private ArrayList<Card> playerDrawPile;
 
-  public int getExtraGold() {
-    return extraGold;
-  }
 
-  public void setExtraGold(int extraGold) {
-    this.extraGold = extraGold;
-  }
 
   public ArrayList<Card> getPlayerDiscard() {
     return playerDiscard;
@@ -71,18 +62,9 @@ this.userName = userName;
     this.playerDrawPile = playerDrawPile;
   }
 
-  public int getExtraGoldIfSilver() {
-    return extraGoldIfSilver;
-  }
 
-  public void setExtraGoldIfSilver(int extraGoldIfSilver) {
-    this.extraGoldIfSilver = extraGoldIfSilver;
-  }
 
-  private int numAction;
-private int numBuy;
-
-  private int extraGoldIfSilver;
+  private boolean hasMoat;
 
   /**
    * Sets player score.
@@ -157,6 +139,13 @@ private int numBuy;
    * @return the game
    */
 
+  public boolean isHasMoat() {
+    return hasMoat;
+  }
+
+  public void setHasMoat(boolean hasMoat) {
+    this.hasMoat = hasMoat;
+  }
 
   /**
    * Gets player score.
@@ -180,36 +169,26 @@ private int numBuy;
    *
    * @return the num action
    */
-  public int getNumAction() {
-    return numAction;
-  }
 
   /**
    * Sets num action.
    *
    * @param numAction the num action
    */
-  public void setNumAction(int numAction) {
-    this.numAction = numAction;
-  }
+
 
   /**
    * Gets player's number of buys.
    *
    * @return the player's number of buys.
    */
-  public int getNumBuy() {
-    return numBuy;
-  }
 
   /**
    * Sets num buy.
    *
    * @param numBuy the num buy
    */
-  public void setNumBuy(int numBuy) {
-    this.numBuy = numBuy;
-  }
+
 
   public ArrayList<Card> getPlayerHand() {
     return playerHand;
@@ -254,25 +233,7 @@ private int numBuy;
     hand.add(newCard);
   }
 */
-  public void addAction(){
-    numAction++;
-  }
 
-  public void addBuy(){
-    numBuy++;
-  }
 
-  public void addGold(){
-    extraGold++;
-  }
-
-  public void playMilitia(){
-    //TODO tell game to switch states, to all engage all players.
-    // other players discard down to 3 or play Moat
-  }
-
-  public void reactToMilitia(){
-    //TODO other players discard down to 3 or play Moat
-  }
 
 }

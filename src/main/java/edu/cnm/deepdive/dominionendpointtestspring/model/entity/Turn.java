@@ -83,6 +83,7 @@ public class Turn implements Serializable {
   @Column(name="buys_remaining")
   private int buysRemaining;
 
+
   @Column(name="did_attack")
   private boolean didAttack;
 
@@ -117,7 +118,8 @@ public class Turn implements Serializable {
   public void setTurnId(int turnId) {
     this.turnId = turnId;
   }
-/**
+
+  /**
   public int getGame() {
     return gameId;
   }
@@ -126,6 +128,7 @@ public class Turn implements Serializable {
     this.gameId = gameId;
   }
 */
+
   public boolean isDidAttack() {
     return didAttack;
   }

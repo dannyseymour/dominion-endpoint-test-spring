@@ -14,6 +14,8 @@ public class GameStateInfoTransferObject {
   HashMap<String, Integer> stacks;
   List<String> playsMadeLastTurnByOtherPlayer;
   String whatState;
+  String message;
+  boolean successful;
 
   public GameStateInfoTransferObject(
       List<Card> cardsInHand, int myVictoryPoints, int theirVictoryPoints, int myActionsRemaining,
@@ -29,6 +31,25 @@ public class GameStateInfoTransferObject {
     this.stacks = stacks;
     this.playsMadeLastTurnByOtherPlayer = playsMadeLastTurnByOtherPlayer;
     this.whatState = whatState;
+  }
+
+  public GameStateInfoTransferObject(
+      List<Card> cardsInHand, int myVictoryPoints, int theirVictoryPoints, int myActionsRemaining,
+      int myBuysRemaining, int myBuyingPower,
+      HashMap<String, Integer> stacks,
+      List<String> playsMadeLastTurnByOtherPlayer, String whatState, String message,
+      boolean successful) {
+    this.cardsInHand = cardsInHand;
+    this.myVictoryPoints = myVictoryPoints;
+    this.theirVictoryPoints = theirVictoryPoints;
+    this.myActionsRemaining = myActionsRemaining;
+    this.myBuysRemaining = myBuysRemaining;
+    this.myBuyingPower = myBuyingPower;
+    this.stacks = stacks;
+    this.playsMadeLastTurnByOtherPlayer = playsMadeLastTurnByOtherPlayer;
+    this.whatState = whatState;
+    this.message = message;
+    this.successful = successful;
   }
 
   public List<Card> getCardsInHand() {
@@ -103,5 +124,21 @@ public class GameStateInfoTransferObject {
 
   public void setWhatState(String whatState) {
     this.whatState = whatState;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
+  public boolean isSuccessful() {
+    return successful;
+  }
+
+  public void setSuccessful(boolean successful) {
+    this.successful = successful;
   }
 }
