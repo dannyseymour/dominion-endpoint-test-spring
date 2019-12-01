@@ -33,9 +33,14 @@ import org.springframework.statemachine.StateMachineContext;
  * track of stacks determining end of game
  */
 @Entity
-@NoArgsConstructor
+
 @Table
 public class Game extends AbstractPersistable<Integer> implements Serializable, ContextEntity<GameStates, GameEvents, Integer>{
+
+  public Game(String player1Name, String player2Name) {
+    this.player1Name = player1Name;
+    this.player2Name = player2Name;
+  }
 
   /**
    * Creates the primary Game Id.

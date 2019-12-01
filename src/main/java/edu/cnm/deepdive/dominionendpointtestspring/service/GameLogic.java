@@ -84,7 +84,7 @@ public class GameLogic {
     stateMachine.sendEvent(message);
   }
 
-  public void initGame(String oAuthKey){
+ /** public void initGame(String oAuthKey){
     this.game= new Game();
     game.setStacks(initializeStacks(game.getStacks()));
     gameRepository.save(game);
@@ -94,7 +94,7 @@ public class GameLogic {
     signalMachine(GameEvents.START_GAME);
     }
 
-
+*/
 
   public GameStateInfo buyTarget(CardType cardType, int playerId){
     GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), getCurrentTurn());
