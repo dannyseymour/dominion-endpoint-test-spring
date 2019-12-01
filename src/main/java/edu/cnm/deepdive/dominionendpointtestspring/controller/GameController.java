@@ -285,7 +285,7 @@ public class GameController {
         gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
         GameParameters.getStacks(),
         gameState.getPlaysInPreviousTurn(),
-        this.stateMachine.getState().getId().toString(),
+        "Discarding",
         true
     );
     return transfer;
