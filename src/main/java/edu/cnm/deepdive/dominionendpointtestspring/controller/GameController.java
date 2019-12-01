@@ -198,12 +198,12 @@ public class GameController {
           stateMachine.sendEvent(GameEvents.END_GAME);
         } else {
 
-          if (GameParameters.getCurrentTurn().isDidAttack()) {
-            stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
-          } else {
+         // if (GameParameters.getCurrentTurn().isDidAttack()) {
+        //    stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+        //  } else {
             stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-          }
-          createNewTurn();
+         // }
+         createNewTurn();
         }
 
         break;
@@ -224,10 +224,10 @@ public class GameController {
         } else {
 
           if (GameParameters.getCurrentTurn().isDidAttack()) {
-            stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+           stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
           } else {
             stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-          }
+         }
           createNewTurn();
         }
         break;
@@ -271,7 +271,7 @@ public class GameController {
       gameState = new GameStateInfo(GameParameters.getCurrentGame(),
           GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
     }*/
-    GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+    GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "You need to discard before taking actions!");
     return gameStateInfoTransferObject;
   }
 
@@ -285,7 +285,8 @@ public class GameController {
         gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
         GameParameters.getStacks(),
         gameState.getPlaysInPreviousTurn(),
-        this.stateMachine.getState().getId().toString()
+        this.stateMachine.getState().getId().toString(),
+        true
     );
     return transfer;
   }
@@ -297,13 +298,16 @@ public class GameController {
         gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
         gameState.getPlayerStateInfoPlayer1().getPlayer().getPlayerScore(),
         gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
-        gameState.getPlayerStateInfoPlayer1().getTurn().getActionsRemaining(),
-        gameState.getPlayerStateInfoPlayer1().getTurn().getBuysRemaining(),
+        //gameState.getPlayerStateInfoPlayer1().getTurn().getActionsRemaining(),
+        //gameState.getPlayerStateInfoPlayer1().getTurn().getBuysRemaining(),
+        1,
+        1,
         gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
         GameParameters.getStacks(),
         gameState.getPlaysInPreviousTurn(),
         this.stateMachine.getState().getId().toString(),
-        message,
+       true,
+       message,
         wasSuccessful
     );
     return transfer;

@@ -110,7 +110,7 @@ public class GameStateInfo implements Serializable {
   public List<String> getPlaysInPreviousTurn(){
     List<String> playList = new ArrayList<>();
     Play play1 = new Play((long) 1, new Turn(game, getPlayerStateInfoPlayer1().getPlayer()),
-        new Card(CardType.MARKET));
+        new Card(CardType.MILITIA));
     Play play2 = new Play((long) 2, new Turn(game, getPlayerStateInfoPlayer1().getPlayer()), 2,
         new Card(CardType.CELLAR));
     playList.add(play1.toString());

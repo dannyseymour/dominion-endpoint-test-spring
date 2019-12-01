@@ -16,12 +16,13 @@ public class GameStateInfoTransferObject {
   String whatState;
   String message;
   boolean successful;
+  boolean wasAttacked;
 
   public GameStateInfoTransferObject(
       List<Card> cardsInHand, int myVictoryPoints, int theirVictoryPoints, int myActionsRemaining,
       int myBuysRemaining, int myBuyingPower,
      HashMap<String, Integer> stacks,
-      List<String> playsMadeLastTurnByOtherPlayer, String whatState) {
+      List<String> playsMadeLastTurnByOtherPlayer, String whatState, boolean wasAttacked) {
     this.cardsInHand = cardsInHand;
     this.myVictoryPoints = myVictoryPoints;
     this.theirVictoryPoints = theirVictoryPoints;
@@ -31,13 +32,14 @@ public class GameStateInfoTransferObject {
     this.stacks = stacks;
     this.playsMadeLastTurnByOtherPlayer = playsMadeLastTurnByOtherPlayer;
     this.whatState = whatState;
+    this.wasAttacked = wasAttacked;
   }
 
   public GameStateInfoTransferObject(
       List<Card> cardsInHand, int myVictoryPoints, int theirVictoryPoints, int myActionsRemaining,
       int myBuysRemaining, int myBuyingPower,
       HashMap<String, Integer> stacks,
-      List<String> playsMadeLastTurnByOtherPlayer, String whatState, String message,
+      List<String> playsMadeLastTurnByOtherPlayer, String whatState, boolean wasAttacked, String message,
       boolean successful) {
     this.cardsInHand = cardsInHand;
     this.myVictoryPoints = myVictoryPoints;
@@ -50,6 +52,7 @@ public class GameStateInfoTransferObject {
     this.whatState = whatState;
     this.message = message;
     this.successful = successful;
+    this.wasAttacked = wasAttacked;
   }
 
   public List<Card> getCardsInHand() {
@@ -140,5 +143,13 @@ public class GameStateInfoTransferObject {
 
   public void setSuccessful(boolean successful) {
     this.successful = successful;
+  }
+
+  public boolean isWasAttacked() {
+    return wasAttacked;
+  }
+
+  public void setWasAttacked(boolean wasAttacked) {
+    this.wasAttacked = wasAttacked;
   }
 }
