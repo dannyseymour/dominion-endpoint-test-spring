@@ -170,7 +170,6 @@ public class PlayerStateInfo implements Serializable {
 
   public int calculateBuyingPower() {
     int buyingPower = 0;
-    ArrayList<Card> cardsInHand = getPlayer().getPlayerHand();
     boolean doIHaveSilver = false;
     for (Card card: cardsInHand){
       if (card.getCardType().equals(CardType.SILVER)){

@@ -1,6 +1,8 @@
 package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfoTransferObject;
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.GameRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.TurnRepository;
 import edu.cnm.deepdive.dominionendpointtestspring.model.aggregates.GameStateInfo;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
@@ -30,7 +32,10 @@ public class GameController {
 
   @Autowired
   private StateMachine<GameStates, GameEvents> stateMachine;
-  //private final GameRepository gameRepository;
+  @Autowired
+  private  GameRepository gameRepository;
+  @Autowired
+  private TurnRepository turnRepository;
 
   @Autowired
   private GameLogic gameLogic;
@@ -50,8 +55,11 @@ public class GameController {
     GameParameters.setPlayer1(new Player("Danny"));
     GameParameters.setPlayer2(new Player("Erica"));
     Game game = new Game("Danny", "Erica");
+    gameRepository.save(game);
     GameParameters.setCurrentGame(game);
-    GameParameters.setCurrentTurn(new Turn(game, gameParameters.getPlayer1()));
+    Turn firstTurn = new Turn(game, gameParameters.getPlayer1());
+    GameParameters.setCurrentTurn(firstTurn);
+    turnRepository.save(firstTurn);
     GameParameters.setCurrentPlayer(gameParameters.getPlayer1());
     stateMachine.sendEvent(GameEvents.START_GAME);
     GameParameters.setStacks(initializeStacks());
@@ -91,6 +99,7 @@ public class GameController {
   @PostMapping("/{playerid}/endphase")
   public String endPhase(@PathVariable("playerid") long playerId) {
     boolean isOver;
+    Turn turn = GameParameters.getCurrentTurn();
     switch (stateMachine.getState().getId()) {
       case PLAYER_1_DISCARDING:
         if (playerId==1L) {
@@ -113,10 +122,11 @@ public class GameController {
             stateMachine.sendEvent(GameEvents.END_GAME);
           } else {
             stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
-            Turn turn = new Turn(gameLogic.getCurrentGame(),
-                gameStateInfo.getPlayerStateInfoPlayer2().getPlayer());
+            turn = new Turn(GameParameters.getCurrentGame(),
+               GameParameters.getCurrentPlayer());
             GameParameters.setCurrentPlayer(GameParameters.getPlayer2());
             GameParameters.setCurrentTurn(turn);
+            turnRepository.save(turn);
           }
         } else{
           return "Invalid action";
@@ -143,10 +153,11 @@ public class GameController {
             stateMachine.sendEvent(GameEvents.END_GAME);
           } else {
             stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
-            Turn turn = new Turn(gameLogic.getCurrentGame(),
-                gameStateInfo.getPlayerStateInfoPlayer2().getPlayer());
+            turn = new Turn(GameParameters.getCurrentGame(),
+                GameParameters.getCurrentPlayer());
             GameParameters.setCurrentPlayer(GameParameters.getPlayer1());
             GameParameters.setCurrentTurn(turn);
+            turnRepository.save(turn);
           }
         } else{
           return "Invalid action";
@@ -156,7 +167,7 @@ public class GameController {
         return "Invalid Request";
     }
     GameParameters.setCurrentState(stateMachine.getState().getId());
-    return stateMachine.getState().getId().toString();
+    return "Turn: " + turn.getTurnId() + stateMachine.getState().getId().toString();
   }
 /**
   @PostMapping("/endphase")
