@@ -45,9 +45,10 @@ public class GameStateInfo implements Serializable {
     intializePlayer(player2);
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
-    previousTurns = (List<Turn>) turnRepository.getAllByOrderByTurnIdAsc();
+    previousTurns = new ArrayList<>();
+    previousTurns.add(new Turn(game, player2));
+        //turnRepository.getAllByOrderByTurnIdAsc();
     //go out to state machine and get who is playing
-    String state = (String) stateMachine.getState().getId();
 
   }
 

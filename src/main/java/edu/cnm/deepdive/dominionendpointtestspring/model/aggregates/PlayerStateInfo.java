@@ -50,12 +50,13 @@ public class PlayerStateInfo implements Serializable {
   PlayerStateInfo(Game game, Player player) {
     this.game=game;
     this.player=player;
-    cardsInHand = player.getPlayerHand();
-    //cardsInHand.add(new Card("Militia", CardType.MILITIA, 4));
-   // cardsInHand.add(new Card("Copper", CardType.COPPER, 0));
-   // cardsInHand.add(new Card("Moat", CardType.MOAT, 2));
-  //  cardsInHand.add(new Card("Cellar", CardType.CELLAR, 2));
-  //  cardsInHand.add(new Card("Market", CardType.MARKET, 4));
+    cardsInHand = new ArrayList<>();
+        //player.getPlayerHand();
+    cardsInHand.add(new Card(CardType.DUCHY));
+   cardsInHand.add(new Card(CardType.MILITIA));
+   cardsInHand.add(new Card(CardType.MOAT));
+  cardsInHand.add(new Card(CardType.COPPER));
+  cardsInHand.add(new Card(CardType.SILVER));
     this.hand = new Hand(cardsInHand);
     cardsInDiscard = player.getPlayerDiscard();
   //  cardsInDiscard.add(new Card("Militia", CardType.MILITIA, 4));

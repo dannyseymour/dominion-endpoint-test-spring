@@ -130,7 +130,7 @@ public class GameLogic {
   public boolean testForVictory(){
 
     //testForVictory(currentGameState);
-    return true;
+    return false;
   }
 /**
   private void testForVictory(GameStateInfo gameStateInfo) {

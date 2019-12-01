@@ -9,6 +9,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.ExposesResourceFor;
@@ -50,9 +51,10 @@ public class GameController {
   ArrayList<Player> players = new ArrayList<>();
   players.add(player1);
   players.add(player2);
-  //game.setPlayers(players);
+ // game.setPlayers(players);
   GameStateInfo gameState = new GameStateInfo(game, new Turn(game, player1));
   return buildTransferObject(gameState);
+
  }
 
  @GetMapping(value="/getstate")
@@ -97,6 +99,43 @@ public class GameController {
   }
   return   stateMachine.getState().getId().toString();
   }
+ @PostMapping("/endphase")
+ public String endPhase(){
+  boolean isOver;
+  switch(stateMachine.getState().getId()){
+   case PLAYER_1_DISCARDING:
+    stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
+    break;
+   case PLAYER_1_ACTION:
+    stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
+    break;
+   case PLAYER_1_BUYING:
+    isOver = gameLogic.testForVictory();
+    if (isOver) {
+     stateMachine.sendEvent(GameEvents.END_GAME);
+    } else {
+     stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
+    }
+    break;
+   case PLAYER_2_DISCARDING:
+    stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
+    break;
+   case PLAYER_2_ACTION:
+    stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
+    break;
+   case PLAYER_2_BUYING:
+    isOver = gameLogic.testForVictory();
+    if (isOver) {
+     stateMachine.sendEvent(GameEvents.END_GAME);
+    } else {
+     stateMachine.sendEvent(GameEvents.PLAYER_2_END_BUYS);
+    }
+    break;
+   default:
+    return "Invalid Request";
+  }
+  return   stateMachine.getState().getId().toString();
+ }
 
 
   @GetMapping(value = "/gamestateinfo")
@@ -106,23 +145,45 @@ public class GameController {
   }
 
  private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
-  return new GameStateInfoTransferObject(
-      gameState.getCurrentPlayerStateInfo().getHand().getCardsInHand(),
-      gameState.getCurrentPlayerStateInfo().getPlayer().getPlayerScore(),
+  GameStateInfoTransferObject transfer = new GameStateInfoTransferObject(
+      gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
+      gameState.getPlayerStateInfoPlayer1().getPlayer().getPlayerScore(),
       gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
-      gameState.getCurrentPlayerStateInfo().getPlayer().getNumAction(),
-      gameState.getCurrentPlayerStateInfo().getPlayer().getNumBuy(),
-      gameState.getCurrentPlayerStateInfo().calculateBuyingPower(),
-      gameState.getGame().getStacks(),
+      gameState.getPlayerStateInfoPlayer1().getPlayer().getNumAction(),
+      gameState.getPlayerStateInfoPlayer1().getPlayer().getNumBuy(),
+      //gameState.getPlayerStateInfoPlayer1().calculateBuyingPower(),
+      4,
+      getStacks(),
       gameState.getPlaysInPreviousTurn(),
-      stateMachine.getState().getId().toString()
+      this.stateMachine.getState().getId().toString()
   );
+  return transfer;
  }
 
+  public HashMap<String, Integer> getStacks() {
+   HashMap<String, Integer> stack = new HashMap<>();
+   stack.put("Bronze", 10);
+   stack.put("Silver", 8);
+   stack.put("Gold", 7);
+   stack.put("Estate", 10);
+   stack.put("Duchy", 12);
+   stack.put("Province", 15);
+   stack.put("Cellar", 9);
+   stack.put("Moat", 10);
+   stack.put("Village", 5);
+   stack.put("Workshop", 3);
+   stack.put("Smithy", 2);
+   stack.put("Remodel", 15);
+   stack.put("Militia", 9);
+   stack.put("Market", 8);
+   stack.put("Mine", 2);
+   stack.put("Merchant", 3);
+   stack.put("Trash", 0);
+   return stack;
+  }
 
 
-
-/**
+ /**
  @PostMapping("{cardid}/buy")
  public GameStateInfo playerBuysTarget(@PathVariable int gameId, int playerId, CardType cardType ){
   //return gameLogic.buyTarget(cardType, playerId, gameId);

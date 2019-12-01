@@ -83,7 +83,25 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
   private int currentTurn;
 
   public HashMap<String, Integer> getStacks() {
-    return stacks;
+    HashMap<String, Integer> stack = new HashMap<>();
+    stack.put("Bronze", 10);
+    stack.put("Silver", 8);
+    stack.put("Gold", 7);
+    stack.put("Estate", 10);
+    stack.put("Duchy", 12);
+    stack.put("Province", 15);
+    stack.put("Cellar", 9);
+    stack.put("Moat", 10);
+    stack.put("Village", 5);
+    stack.put("Workshop", 3);
+    stack.put("Smithy", 2);
+    stack.put("Remodel", 15);
+    stack.put("Militia", 9);
+    stack.put("Market", 8);
+    stack.put("Mine", 2);
+    stack.put("Merchant", 3);
+    stack.put("Trash", 0);
+    return stack;
   }
 
   public void setStacks(HashMap<String, Integer> stacks) {
