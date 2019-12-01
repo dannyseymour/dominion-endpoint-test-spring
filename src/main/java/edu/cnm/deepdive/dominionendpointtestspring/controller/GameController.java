@@ -52,22 +52,27 @@ public class GameController {
 
   @PostMapping(value = "/newgame")
   public GameStateInfoTransferObject newGame() {
-    GameParameters.setPlayer1(new Player("Danny"));
-    GameParameters.setPlayer2(new Player("Erica"));
-    Game game = new Game("Danny", "Erica");
-    gameRepository.save(game);
-    GameParameters.setCurrentGame(game);
-    Turn firstTurn = new Turn(game, gameParameters.getPlayer1());
-    GameParameters.setCurrentTurn(firstTurn);
-    turnRepository.save(firstTurn);
-    GameParameters.setCurrentPlayer(gameParameters.getPlayer1());
-    stateMachine.sendEvent(GameEvents.START_GAME);
-    GameParameters.setStacks(initializeStacks());
-    GameStateInfo gameState = new GameStateInfo(game, GameParameters.getCurrentTurn());
+    GameStateInfo gameState = startNewGame();
     return buildTransferObject(gameState);
   }
 
-  public HashMap<String, Integer> initializeStacks() {
+ private GameStateInfo startNewGame() {
+  GameParameters.setPlayer1(new Player("Danny"));
+  GameParameters.setPlayer2(new Player("Erica"));
+  Game game = new Game("Danny", "Erica");
+  gameRepository.save(game);
+  GameParameters.setCurrentGame(game);
+  Turn firstTurn = new Turn(game, gameParameters.getPlayer1());
+  GameParameters.setCurrentTurn(firstTurn);
+  turnRepository.save(firstTurn);
+  GameParameters.setCurrentPlayer(gameParameters.getPlayer1());
+  stateMachine.sendEvent(GameEvents.START_GAME);
+  GameParameters.setStacks(initializeStacks());
+  GameStateInfo gameState = new GameStateInfo(game, GameParameters.getCurrentTurn());
+  return gameState;
+ }
+
+ public HashMap<String, Integer> initializeStacks() {
     HashMap<String, Integer> stack = new HashMap<>();
     stack.put("Copper", 60);
     stack.put("Silver", 40);
@@ -211,7 +216,13 @@ public class GameController {
 
   @GetMapping(value = "/gamestateinfo")
   public GameStateInfoTransferObject getGameInfo() {
-    GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameStateInfo);
+   GameStateInfo gameState;
+   if (GameParameters.getCurrentGame()==null){
+   gameState = startNewGame();
+   }else{
+    gameState = new GameStateInfo(GameParameters.getCurrentGame(), GameParameters.getCurrentTurn());
+   }
+    GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
     return gameStateInfoTransferObject;
   }
 
