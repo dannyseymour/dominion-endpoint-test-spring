@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -14,6 +16,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import lombok.NoArgsConstructor;
@@ -29,14 +34,17 @@ import org.springframework.statemachine.StateMachineContext;
  */
 @Entity
 @NoArgsConstructor
-public class Game extends AbstractPersistable<Long> implements Serializable, ContextEntity<GameStates, GameEvents, Long>{
+@Table
+public class Game extends AbstractPersistable<Integer> implements Serializable, ContextEntity<GameStates, GameEvents, Integer>{
 
   /**
    * Creates the primary Game Id.
    */
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+  @Column(name="id")
+  private int id;
+
   @NonNull
   @CreationTimestamp
   @Temporal(TemporalType.TIMESTAMP)
@@ -55,20 +63,23 @@ public class Game extends AbstractPersistable<Long> implements Serializable, Con
    * throughout the game.
    */
 
+  @Column(name="player_1_name")
   private String player1Name;
+  @Column(name="player_2_name")
   private String player2Name;
+
   private HashMap<String, Integer> stacks;
 
-  private ArrayList<Player> players;
-  //TODO use google auth to get players
 
   @JsonIgnore
+      @Column(name="state_machine")
   StateMachineContext<GameStates, GameEvents> stateMachineContext;
 
   @Enumerated(EnumType.STRING)
+      @Column(name="current_state")
   GameStates currentState;
 
-
+  @Column(name="current_turn")
   private int currentTurn;
 
   public HashMap<String, Integer> getStacks() {
@@ -97,7 +108,7 @@ public class Game extends AbstractPersistable<Long> implements Serializable, Con
    *
    * @return the id
    */
-  public Long getId() {
+  public Integer getId() {
     return id;
   }
 
@@ -151,15 +162,6 @@ public class Game extends AbstractPersistable<Long> implements Serializable, Con
 
   public void setCurrentTurn(int currentTurn) {
     this.currentTurn = currentTurn;
-  }
-
-  public ArrayList<Player> getPlayers() {
-    return players;
-  }
-
-  public void setPlayers(
-      ArrayList<Player> players) {
-    this.players = players;
   }
 
 }

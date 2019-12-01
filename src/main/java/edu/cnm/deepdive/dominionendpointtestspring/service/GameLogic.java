@@ -55,7 +55,7 @@ public class GameLogic {
   PlayerService playerService;
 
   public Turn getCurrentTurn(){
-    return turnRepository.getAllByOrderByIdDesc().get(turnRepository.getAllByOrderByIdDesc().size()-1);
+    return turnRepository.getAllByOrderByTurnIdDesc().get(turnRepository.getAllByOrderByTurnIdDesc().size()-1);
   }
   public Game getCurrentGame(){
     return gameRepository.getAllByOrderByIdDesc().get(gameRepository.getAllByOrderByIdDesc().size()-1);
@@ -101,7 +101,7 @@ public class GameLogic {
     Card buyCard = new Card(cardType);
     int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()- buyCard.getCost();
     if (buyingPower < 0){
-      endTurn(getCurrentGame(), playerRepository.getPlayerById(playerId).get());
+      endTurn(getCurrentGame(), playerRepository.getPlayerById((long) playerId).get());
     }else{
       gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(buyCard);
       switch(cardType){
@@ -191,7 +191,7 @@ public class GameLogic {
     Turn thisTurn = new Turn(getCurrentGame(), player);
     turnRepository.save(thisTurn);
     GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), thisTurn);
-    if(gameStateInfo.getPreviousTurns().get(thisTurn.getId()-1).isDidAttack()){
+    if(gameStateInfo.getPreviousTurns().get(thisTurn.getTurnId()-1).isDidAttack()){
       gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.MILITIA_RESPONSE);
     }else {
       gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.ACTION);
@@ -219,12 +219,13 @@ public class GameLogic {
     //gameStateInfo.saveAll();
     //TODO update other player
   }
+  /**
   public List updateOtherPlayer(){
-    ArrayList<Turn> allTurns = turnRepository.getAllByOrderByIdDesc();
+    ArrayList<Turn> allTurns = turnRepository.getAllByOrderByTurnIdDesc();
     Turn lastTurn = allTurns.get(allTurns.size()-2);
     return (List) playRepository.getAllByTurn(lastTurn);
   }
-
+*/
   public void endGame(){
     signalMachine(GameEvents.END_GAME);
   }

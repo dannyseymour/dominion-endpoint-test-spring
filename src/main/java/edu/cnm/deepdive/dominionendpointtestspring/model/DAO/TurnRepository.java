@@ -11,24 +11,23 @@ public interface TurnRepository extends JpaRepository<Turn,Long> {
 
 
 
-  Turn getTurnById(Long id);
+  //Turn getTurnById(int id);
   
 
 
-  Iterable<Turn> getAllByOrderByIdAsc();
-  ArrayList<Turn> getAllByOrderByIdDesc();
+  Iterable<Turn> getAllByOrderByTurnIdAsc();
+  ArrayList<Turn> getAllByOrderByTurnIdDesc();
 
 
 
 
 
-  boolean existsById(int turnId);
+  //boolean existsById(int turnId);
 
 
 
   long count();
 
-  void deleteById(int id);
 
   void delete(Turn turn);
 

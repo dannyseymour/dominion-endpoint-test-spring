@@ -4,34 +4,45 @@ import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 
 /**
  * The type Player.
  */
-
+@Entity
+@Table
 public class Player implements Serializable {
 
   public Player(String userName) {
 
 this.userName = userName;
   }
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(name="player_id", updatable = false, nullable = false)
   private Long id;
 
+  @Column(name = "user_name", nullable = true, updatable = false)
   private String userName;
 
+  @Column(name = "player_score")
   private int playerScore;
 
-
+  @Column(name = "extra_gold")
   private int extraGold;
 
+  @Column(name = "cards_in_hand", nullable = true)
   private ArrayList<Card> playerHand;
+  @Column(name = "cards_in_discard", nullable = true)
   private ArrayList<Card> playerDiscard;
+  @Column(name = "cards_in_draw_pile", nullable = true)
   private ArrayList<Card> playerDrawPile;
 
   public int getExtraGold() {

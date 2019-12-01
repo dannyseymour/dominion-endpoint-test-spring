@@ -11,10 +11,10 @@ public interface PlayerRepository extends JpaRepository<Player,Long> {
 
 
   Optional<Player> findPlayerById(Long id);
-  Optional<Player> getPlayerByOauthKey(String oauthKey);
+  Optional<Player> getPlayerByUserName(String oauthKey);
   @Override
   void deleteAll();
 
-  Optional<Player> getPlayerById(int i);
+  Optional<Player> getPlayerById(Long id);
 
 }

@@ -26,23 +26,12 @@
       <artifactId>spring-hateoas</artifactId>
       <version>1.0.1.RELEASE</version>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-rest</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.statemachine</groupId>
-      <artifactId>spring-statemachine-core</artifactId>
-      <version>1.2.3.RELEASE</version>
-    </dependency>
+
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -51,27 +40,11 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>javax.transaction</groupId>
-      <artifactId>javax.transaction-api</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.hateoas</groupId>
-      <artifactId>spring-hateoas</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-hateoas</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -87,11 +60,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.restdocs</groupId>
-      <artifactId>spring-restdocs-mockmvc</artifactId>
-      <scope>test</scope>
-    </dependency>
+
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
@@ -104,11 +73,7 @@
       <version>5.0.0-RC4</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-rest-core -->
-    <dependency>
-      <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-rest-core</artifactId>
-      <version>3.2.2.RELEASE</version>
-    </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.springframework.statemachine/spring-statemachine-kryo -->
     <dependency>
       <groupId>org.springframework.statemachine</groupId>

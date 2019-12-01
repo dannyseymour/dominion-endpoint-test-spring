@@ -9,11 +9,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PlayRepository extends JpaRepository<Play,Long> {
 
-  public <S extends Play> Iterable<S> save(Play... plays);
+ // public <S extends Play> Iterable<S> save(Play... plays);
 
-  <S extends Play> Iterable<S> findPlayByTurn(Turn turn);
+ // <S extends Play> Iterable<S> findPlayByTurn(Turn turn);
 
-  Iterable<Play> getAllByTurn(Turn turn);
+ // Iterable<Play> getAllByTurn(Turn turn);
 
   @Override
   void deleteAll();

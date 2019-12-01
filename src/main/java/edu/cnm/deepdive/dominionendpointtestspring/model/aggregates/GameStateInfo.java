@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.state.State;
 
 public class GameStateInfo implements Serializable {
 
@@ -40,14 +39,21 @@ public class GameStateInfo implements Serializable {
     this.game=game;
     this.thisTurn = turn;
     this.stacks = game.getStacks();
-    Player player1 = game.getPlayers().get(1);
-    Player player2= game.getPlayers().get(2);
+    Player player1 = new Player ("Erica");
+    Player player2= new Player("Danny");
+    intializePlayer(player1);
+    intializePlayer(player2);
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
-    previousTurns = (List<Turn>) turnRepository.getAllByOrderByIdAsc();
+    previousTurns = (List<Turn>) turnRepository.getAllByOrderByTurnIdAsc();
     //go out to state machine and get who is playing
     String state = (String) stateMachine.getState().getId();
 
+  }
+
+  private void intializePlayer(Player player) {
+    player.setNumBuy(1);
+    player.setNumAction(1);
   }
 
   public PlayerStateInfo getCurrentPlayerStateInfo(){

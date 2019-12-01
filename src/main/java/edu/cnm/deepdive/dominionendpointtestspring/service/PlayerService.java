@@ -15,7 +15,7 @@ public class PlayerService {
   }
 
   public Player getOrCreatePlayer(String oauthKey) {
-    return repository.getPlayerByOauthKey(oauthKey)
+    return repository.getPlayerByUserName(oauthKey)
         .orElseGet(() -> {
           Player player = new Player(oauthKey);
          // player.setOauthKey(oauthKey);

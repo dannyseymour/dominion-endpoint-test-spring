@@ -5,8 +5,6 @@ import edu.cnm.deepdive.dominionendpointtestspring.model.aggregates.GameStateInf
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
 import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,7 +50,7 @@ public class GameController {
   ArrayList<Player> players = new ArrayList<>();
   players.add(player1);
   players.add(player2);
-  game.setPlayers(players);
+  //game.setPlayers(players);
   GameStateInfo gameState = new GameStateInfo(game, new Turn(game, player1));
   return buildTransferObject(gameState);
  }
