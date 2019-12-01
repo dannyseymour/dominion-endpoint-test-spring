@@ -1,8 +1,8 @@
 package edu.cnm.deepdive.dominionendpointtestspring.service;
 
 
-import edu.cnm.deepdive.dominionservice.model.dao.PlayerRepository;
-import edu.cnm.deepdive.dominionservice.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.PlayerRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,8 +17,8 @@ public class PlayerService {
   public Player getOrCreatePlayer(String oauthKey) {
     return repository.getPlayerByOauthKey(oauthKey)
         .orElseGet(() -> {
-          Player player = new Player();
-          player.setOauthKey(oauthKey);
+          Player player = new Player(oauthKey);
+         // player.setOauthKey(oauthKey);
           return repository.save(player);
         });
   }

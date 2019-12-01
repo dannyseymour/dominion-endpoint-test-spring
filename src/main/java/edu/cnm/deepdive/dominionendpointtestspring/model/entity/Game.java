@@ -3,8 +3,10 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -27,7 +29,7 @@ import org.springframework.statemachine.StateMachineContext;
  */
 @Entity
 @NoArgsConstructor
-public class Game extends AbstractPersistable<Long> implements ContextEntity<GameStates, GameEvents, Long>{
+public class Game extends AbstractPersistable<Long> implements Serializable, ContextEntity<GameStates, GameEvents, Long>{
 
   /**
    * Creates the primary Game Id.
@@ -55,6 +57,7 @@ public class Game extends AbstractPersistable<Long> implements ContextEntity<Gam
 
   private String player1Name;
   private String player2Name;
+  private HashMap<String, Integer> stacks;
 
   private ArrayList<Player> players;
   //TODO use google auth to get players
@@ -68,7 +71,13 @@ public class Game extends AbstractPersistable<Long> implements ContextEntity<Gam
 
   private int currentTurn;
 
+  public HashMap<String, Integer> getStacks() {
+    return stacks;
+  }
 
+  public void setStacks(HashMap<String, Integer> stacks) {
+    this.stacks = stacks;
+  }
 
   /**
    * Gets players.

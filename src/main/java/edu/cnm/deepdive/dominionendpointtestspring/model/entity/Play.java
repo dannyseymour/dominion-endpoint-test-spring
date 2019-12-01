@@ -1,6 +1,7 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
 import java.io.Serializable;
 
 /**
@@ -10,17 +11,21 @@ public class Play implements Serializable {
 
   public Play(Long id, Turn turn, Card cardPlayed) {
     this.id = id;
-    this.turn = turn;
-    this.cardPlayed = cardPlayed;
+    this.turnId = turn.getId();
+    this.cardPlayed = cardPlayed.getCardName();
   }
 
   public Play(Long id, Turn turn, int goldSpent,
       Card cardBought) {
     this.id = id;
-    this.turn = turn;
+    this.turnId = turn.getId();
     this.goldSpent = goldSpent;
-    this.cardBought = cardBought;
+    this.cardBought = cardBought.getCardName();
   }
+
+
+
+
 
   /**
    * Each action taken by a player generates a new play. Typically, most of the fields will be null
@@ -37,15 +42,16 @@ public class Play implements Serializable {
    * or zero in the interest of separating out each action individually.
    */
 
-  private Turn turn;
+  private int turnId;
 
   /**
    * Each play is a associated with zero or more cards played. This records a log of which card was
    * played and when.
    */
 
+  private String playerName;
 
-  private Card cardPlayed;
+  private String cardPlayed;
 
   /**
    * Each play is associated with zero or more gold spent, typically to buy new cards.
@@ -58,7 +64,7 @@ public class Play implements Serializable {
    */
 
 
-  private Card cardBought;
+  private String cardBought;
 
 
   public Long getId() {
@@ -69,20 +75,20 @@ public class Play implements Serializable {
     this.id = id;
   }
 
-  public Turn getTurn() {
-    return turn;
+  public int getTurn() {
+    return turnId;
   }
 
-  public void setTurn(Turn turn) {
-    this.turn = turn;
+  public void setTurn(int turnId) {
+    this.turnId = turnId;
   }
 
-  public Card getCardPlayed() {
+  public String getCardPlayed() {
     return cardPlayed;
   }
 
   public void setCardPlayed(Card cardPlayed) {
-    this.cardPlayed = cardPlayed;
+    this.cardPlayed = cardPlayed.getCardName();
   }
 
   public int getGoldSpent() {
@@ -94,12 +100,12 @@ public class Play implements Serializable {
   }
 
 
-  public Card getCardBought() {
+  public String getCardBought() {
     return cardBought;
   }
 
   public void setCardBought(Card cardBought) {
-    this.cardBought = cardBought;
+    this.cardBought = cardBought.getCardName();
   }
 
   @Override
@@ -107,11 +113,11 @@ public class Play implements Serializable {
     String play;
     if (cardPlayed != null) {
        play = "Danny played "
-          + cardPlayed.getCardName();
+          + cardPlayed;
     }
     else if (cardBought!= null){
        play = "Danny bought "
-          + cardBought.getCardName()
+          + cardBought
           + "for "
           + goldSpent;
     }else{

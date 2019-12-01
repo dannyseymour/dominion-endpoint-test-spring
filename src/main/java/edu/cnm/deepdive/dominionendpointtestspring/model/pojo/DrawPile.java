@@ -1,7 +1,8 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.pojo;
 
-import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
-
+import edu.cnm.deepdive.dominionendpointtestspring.model.aggregates.GameStateInfo;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Spliterator;

@@ -2,6 +2,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,27 +15,60 @@ import javax.persistence.Id;
 
 public class Player implements Serializable {
 
-  public Player(Long id, String userName) {
-    this.id = id;
+  public Player(String userName) {
 
+this.userName = userName;
   }
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-
+  private String userName;
 
   private int playerScore;
 
 
-
   private int extraGold;
 
-  private List<Card> playerHand;
+  private ArrayList<Card> playerHand;
+  private ArrayList<Card> playerDiscard;
+  private ArrayList<Card> playerDrawPile;
 
+  public int getExtraGold() {
+    return extraGold;
+  }
 
+  public void setExtraGold(int extraGold) {
+    this.extraGold = extraGold;
+  }
 
-private int numAction;
+  public ArrayList<Card> getPlayerDiscard() {
+    return playerDiscard;
+  }
+
+  public void setPlayerDiscard(
+      ArrayList<Card> playerDiscard) {
+    this.playerDiscard = playerDiscard;
+  }
+
+  public ArrayList<Card> getPlayerDrawPile() {
+    return playerDrawPile;
+  }
+
+  public void setPlayerDrawPile(
+      ArrayList<Card> playerDrawPile) {
+    this.playerDrawPile = playerDrawPile;
+  }
+
+  public int getExtraGoldIfSilver() {
+    return extraGoldIfSilver;
+  }
+
+  public void setExtraGoldIfSilver(int extraGoldIfSilver) {
+    this.extraGoldIfSilver = extraGoldIfSilver;
+  }
+
+  private int numAction;
 private int numBuy;
 
   private int extraGoldIfSilver;
@@ -166,11 +200,11 @@ private int numBuy;
     this.numBuy = numBuy;
   }
 
-  public List<Card> getPlayerHand() {
+  public ArrayList<Card> getPlayerHand() {
     return playerHand;
   }
 
-  public void setPlayerHand(List<Card> playerHand) {
+  public void setPlayerHand(ArrayList<Card> playerHand) {
     this.playerHand = playerHand;
   }
  public enum PlayerState{

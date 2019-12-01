@@ -1,15 +1,18 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.aggregates;
 
-import edu.cnm.deepdive.dominionservice.model.dao.PlayRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.PlayerRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.StackRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.TurnRepository;
-import edu.cnm.deepdive.dominionservice.model.entity.Game;
-import edu.cnm.deepdive.dominionservice.model.entity.Player;
-import edu.cnm.deepdive.dominionservice.model.entity.Stack;
-import edu.cnm.deepdive.dominionservice.model.entity.Turn;
-import edu.cnm.deepdive.dominionservice.model.enums.States;
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.PlayRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.PlayerRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.TurnRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Play;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.statemachine.StateMachine;
@@ -19,34 +22,32 @@ public class GameStateInfo implements Serializable {
 
   private PlayerStateInfo playerStateInfoPlayer1;
   private PlayerStateInfo playerStateInfoPlayer2;
-  private StackRepository stackRepository;
+  private static boolean militiaFlag;
   private TurnRepository turnRepository;
   private PlayerRepository playerRepository;
   private Game game;
   private List<Turn> previousTurns;
   private long currentPlayerId;
   private StateMachine stateMachine;
-  private List<Stack> stacks;
+  private HashMap<String, Integer> stacks;
   private PlayRepository playRepository;
+  private Turn thisTurn;
 
 
 
-  public GameStateInfo(Game game) {
+  public GameStateInfo(Game game, Turn turn) {
+
     this.game=game;
+    this.thisTurn = turn;
+    this.stacks = game.getStacks();
     Player player1 = game.getPlayers().get(1);
     Player player2= game.getPlayers().get(2);
-    this.stacks = stackRepository.getAllByGameId(game.getId());
     playerStateInfoPlayer1 = new PlayerStateInfo(game, player1);
     playerStateInfoPlayer2 = new PlayerStateInfo(game, player2);
     previousTurns = (List<Turn>) turnRepository.getAllByOrderByIdAsc();
     //go out to state machine and get who is playing
-    State state = stateMachine.getState();
-    if (States
-        .PLAYER_1_TURN.equals(state)) {
-      currentPlayerId = 1;
-    } else if (States.PLAYER_2_TURN.equals(state)) {
-      currentPlayerId = 2;
-    }
+    String state = (String) stateMachine.getState().getId();
+
   }
 
   public PlayerStateInfo getCurrentPlayerStateInfo(){
@@ -100,24 +101,26 @@ public class GameStateInfo implements Serializable {
   public void setCurrentPlayer(long playerId) {
     this.currentPlayerId = playerId;
   }
-
+/**
   public void saveAll() {
     playerStateInfoPlayer2.saveAll();
     playerStateInfoPlayer1.saveAll();
-    for (Stack stack: stacks){
-      stackRepository.save(stack);
-    }
-
-
+  }
+*/
+  public List<String> getPlaysInPreviousTurn(){
+    List<String> playList = new ArrayList<>();
+    Play play1 = new Play((long) 1, new Turn(game, getPlayerStateInfoPlayer1().getPlayer()),
+        new Card(CardType.MARKET));
+    Play play2 = new Play((long) 2, new Turn(game, getPlayerStateInfoPlayer1().getPlayer()), 2,
+        new Card(CardType.CELLAR));
+    playList.add(play1.toString());
+    playList.add(play2.toString());
+    return playList;
   }
 
-  public List<Stack> getStacks() {
-    return stacks;
-  }
 
-  public void setStacks(List<Stack> stacks) {
-    this.stacks = stacks;
-  }
+
+
 
   public enum StackTypes {
     Bronze,
@@ -142,9 +145,7 @@ public class GameStateInfo implements Serializable {
         "Village",
         "Workshop", "Smithy", "Remodel", "Militia", "Market", "Mine", "Merchant", "Trash"};
 
-    public String toString(Stack.StackType stackType) {
-      return stackType.getSymbol();
-    }
+
 
     private String getSymbol() {
       return symbols[ordinal()];

@@ -1,7 +1,20 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.DAO;
 
-import org.springframework.data.repository.CrudRepository;
 
-public interface PlayerRepository extends CrudRepository {
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface PlayerRepository extends JpaRepository<Player,Long> {
+
+
+  Optional<Player> findPlayerById(Long id);
+  Optional<Player> getPlayerByOauthKey(String oauthKey);
+  @Override
+  void deleteAll();
+
+  Optional<Player> getPlayerById(int i);
 
 }

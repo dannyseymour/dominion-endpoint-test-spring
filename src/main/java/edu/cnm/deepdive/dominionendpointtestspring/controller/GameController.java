@@ -1,20 +1,18 @@
 package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
-import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfo;
-
 import edu.cnm.deepdive.dominionendpointtestspring.GameStateInfoTransferObject;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
+import edu.cnm.deepdive.dominionendpointtestspring.model.aggregates.GameStateInfo;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
-
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
 import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.statemachine.StateMachine;
@@ -50,19 +48,19 @@ public class GameController {
 
  private GameStateInfoTransferObject setupDummyGame() {
   Game game = new Game();
-  Player player1 = new Player(1L, "Erica");
-  Player player2 = new Player(2L, "Danny");
+  Player player1 = new Player( "Erica");
+  Player player2 = new Player( "Danny");
   ArrayList<Player> players = new ArrayList<>();
   players.add(player1);
   players.add(player2);
   game.setPlayers(players);
-  GameStateInfo gameState = new GameStateInfo(game, stateMachine.getState().getId());
+  GameStateInfo gameState = new GameStateInfo(game, new Turn(game, player1));
   return buildTransferObject(gameState);
  }
 
  @GetMapping(value="/getstate")
  public String getState(){
-  return   stateMachine.getState().getId().toString();
+  return stateMachine.getState().getId().toString();
  }
 
  @PostMapping("/{gameid}/{playerid}/endphase")
@@ -104,17 +102,6 @@ public class GameController {
   }
 
 
-
-  //TODO: Consider replacing with Firebase
-  /**
-  @PostMapping(value = "/create")
-  public GameStateInfo createNewGame(@RequestBody Game newGame) {
-   //TODO
-    GameStateInfo gameStateInfo = new GameStateInfo(newGame);
-    return gameStateInfo;
-  }
-*/
-
   @GetMapping(value = "/gamestateinfo")
   public GameStateInfoTransferObject getGameInfo(){
    GameStateInfoTransferObject gameStateInfoTransferObject = setupDummyGame();
@@ -122,53 +109,31 @@ public class GameController {
   }
 
  private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
-   GameStateInfoTransferObject gameStateInfoTransferObject = new GameStateInfoTransferObject(
-       gameState.getCurrentPlayerStateInfo().getHand().getCardsInHand(),
-       gameState.getCurrentPlayerStateInfo().getPlayer().getPlayerScore(),
-       gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
-       gameState.getCurrentPlayerStateInfo().getPlayer().getNumAction(),
-       gameState.getCurrentPlayerStateInfo().getPlayer().getNumBuy(),
-       4,
-       gameState.getStacks(),
-       gameState.getPlaysInPreviousTurn(),
-       stateMachine.getState().getId().toString()
-   );
-       return gameStateInfoTransferObject;
+  return new GameStateInfoTransferObject(
+      gameState.getCurrentPlayerStateInfo().getHand().getCardsInHand(),
+      gameState.getCurrentPlayerStateInfo().getPlayer().getPlayerScore(),
+      gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
+      gameState.getCurrentPlayerStateInfo().getPlayer().getNumAction(),
+      gameState.getCurrentPlayerStateInfo().getPlayer().getNumBuy(),
+      gameState.getCurrentPlayerStateInfo().calculateBuyingPower(),
+      gameState.getGame().getStacks(),
+      gameState.getPlaysInPreviousTurn(),
+      stateMachine.getState().getId().toString()
+  );
  }
 
- @GetMapping("/state")
-  public GameStateInfo getCurrentTurnState(@PathVariable("gameid") long gameId) {
-    //TODO add filter so GameStateInfo does not return all the info on the contents of other persons hand, either deck
-   // GameStateInfo gameStateInfo = new GameStateInfo(gameRepository.getGameById(gameId));
-    return new GameStateInfo();
-  }
 
 
 
- @PostMapping("/{cardid}/action")
- public GameStateInfo playCard(@PathVariable long gameId, int playerId, int cardId,
-     @RequestBody ArrayList<Card> cards){
-  return new GameStateInfo();
-  /**if (cards == null){
-   return gameLogic.playCardWithCards(cardId, gameId, playerId, null);
-   }else {
-   return gameLogic.playCardWithCards(cardId, gameId, playerId, cards);
-   }*/
- }
-
+/**
  @PostMapping("{cardid}/buy")
  public GameStateInfo playerBuysTarget(@PathVariable int gameId, int playerId, CardType cardType ){
   //return gameLogic.buyTarget(cardType, playerId, gameId);
   return new GameStateInfo();
  }
 
- @PostMapping("/endphase")
- public GameStateInfo playerEndsPhase(@PathVariable int gameId, int playerId, String phaseState){
-  //return gameLogic.playerEndsPhase(gameId, playerId, phaseState);
-  return new GameStateInfo();
- }
 
-
+*/
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(NoSuchElementException.class)
   public void notFound() {
@@ -178,5 +143,46 @@ public class GameController {
   @ExceptionHandler(Exception.class)
   public void badRequest() {
   }
+/**
+ @Bean
+ public DefaultStateMachineAdapter<GameStates, GameEvents, Game> orderStateMachineAdapter(
+     StateMachineFactory<GameStates, GameEvents> stateMachineFactory,
+     StateMachinePersister<GameStates, GameEvents, ContextEntity<GameStates, GameEvents, Serializable>> persister) {
+  return new DefaultStateMachineAdapter<GameStates, GameEvents, Game>(stateMachineFactory, persister);
+ }
 
+ @Bean
+ public ContextObjectResourceProcessor<GameStates, GameEvents, Game> orderResourceProcessor(
+     EntityLinks entityLinks,
+     DefaultStateMachineAdapter<GameStates, GameEvents, ContextEntity<GameStates, GameEvents, Game>> gameStateMachineAdapter) {
+  return new ContextObjectResourceProcessor<GameStates, GameEvents, Game>(entityLinks, gameStateMachineAdapter);
+ }
+
+ @Bean
+ public DefaultStateMachinePersister<GameStates, GameEvents, Game> persister(
+     StateMachinePersist<GameStates, GameEvents, ContextEntity<GameStates, GameEvents, Serializable>> persist) {
+  return new DefaultStateMachinePersister<GameStates, GameEvents, Game>(persist);
+ }
+
+ @Bean
+ public StateMachinePersist<GameStates,GameEvents, Game> persist() {
+  return new StateMachinePersist<GameStates, GameEvents, Game>() {
+
+   @Override
+   public void write(StateMachineContext<GameStates, GameEvents> stateMachineContext, Game game)
+       throws Exception {
+    game.setStateMachineContext(stateMachineContext);
+   }
+
+   @Override
+   public StateMachineContext<GameStates, GameEvents> read(Game game) throws Exception {
+    return game.getStateMachineContext();
+   }
+
+
+
+
+  };
+ }
+ */
 }

@@ -1,6 +1,6 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
-/**
 
+/**
 import edu.cnm.deepdive.dominionendpointtestspring.state.DefaultStateMachineAdapter;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 
 import org.springframework.hateoas.server.EntityLinks;
@@ -19,7 +20,7 @@ import org.springframework.statemachine.transition.Transition;
 
 @RequiredArgsConstructor
 @Slf4j
-public class ContextObjectResourceProcessor<S, E, T extends ContextEntity<S, E, ? extends Serializable>> implements ResourceProcessor<Resource<T>> {
+public class ContextObjectResourceProcessor<S, E, T extends ContextEntity<S, E, ? extends Serializable>> implements ResourceProcessor<EntityModel<T>> {
 
   private static final KebabCaseStrategy TO_KEBAB = new KebabCaseStrategy();
 
@@ -27,8 +28,8 @@ public class ContextObjectResourceProcessor<S, E, T extends ContextEntity<S, E, 
 
   final DefaultStateMachineAdapter<GameStates, GameEvents, Long> stateMachineAdapter;
 
-  @Override
-  public Resource<T> process(Resource<T> resource) {
+
+  public EntityModel<T> process(EntityModel<T> resource) {
     ContextEntity<S, E, ? extends Serializable> contextObject = resource.getContent();
     StateMachine<S, E> stateMachine = null;
     try {
@@ -39,7 +40,7 @@ public class ContextObjectResourceProcessor<S, E, T extends ContextEntity<S, E, 
 
     assert stateMachine != null;
     for (Transition<S, E> transition : stateMachine.getTransitions()) {
-      if(stateMachine.getState().getId().equals(transition.getSource().getId())) {
+      if (stateMachine.getState().getId().equals(transition.getSource().getId())) {
         E event = transition.getTrigger().getEvent();
         log.info("Found transition triggered by event: {}", event);
         resource.add(eventLink(contextObject, event, TO_KEBAB.translate(event.toString())));
@@ -49,19 +50,19 @@ public class ContextObjectResourceProcessor<S, E, T extends ContextEntity<S, E, 
     return resource;
   }
 
-  private Link eventLink(ContextEntity<S, E, ? extends Serializable> contextObject, E event, String rel) {
-    return entityLinks.linkForSingleResource(contextObject).slash("receive").slash(event).withRel(rel);
+  private Link eventLink(ContextEntity<S, E, ? extends Serializable> contextObject, E event,
+      String rel) {
+    return entityLinks.linkFor(contextObject).slash("receive").slash(event)
+        .withRel(rel);
   }
 
-
-  }
 
   // copied from Jackson.PropertyNamingStrategy
-  static class KebabCaseStrategy
-  {
-    public String translate(String input)
-    {
-      if (input == null) return input; // garbage in, garbage out
+  static class KebabCaseStrategy {
+
+    public String translate(String input) {
+      if (input == null)
+        return input; // garbage in, garbage out
       int length = input.length();
       if (length == 0) {
         return input;
@@ -95,6 +96,6 @@ public class ContextObjectResourceProcessor<S, E, T extends ContextEntity<S, E, 
       return result.toString();
     }
   }
-
 }
+
 */

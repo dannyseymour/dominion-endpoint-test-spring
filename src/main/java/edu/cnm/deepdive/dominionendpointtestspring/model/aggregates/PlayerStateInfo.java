@@ -1,46 +1,87 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.aggregates;
 
-import edu.cnm.deepdive.dominionservice.model.dao.CardRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.DiscardPileRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.DrawPileRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.HandRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.PlayerRepository;
-import edu.cnm.deepdive.dominionservice.model.dao.TurnRepository;
-import edu.cnm.deepdive.dominionservice.model.entity.Card;
-import edu.cnm.deepdive.dominionservice.model.entity.DiscardPile;
-import edu.cnm.deepdive.dominionservice.model.entity.DrawPile;
-import edu.cnm.deepdive.dominionservice.model.entity.Game;
-import edu.cnm.deepdive.dominionservice.model.entity.Hand;
-import edu.cnm.deepdive.dominionservice.model.entity.Player;
-import edu.cnm.deepdive.dominionservice.model.entity.Turn;
+
+import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.TurnRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.DiscardPile;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.DrawPile;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Hand;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.io.Serializable;
 import java.util.ArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PlayerStateInfo implements Serializable {
+  Logger logger = LoggerFactory.getLogger(PlayerStateInfo.class);
+//  private TurnRepository turnRepository;
+
+
+ // private CardRepository cardRepository;
+
+
+  //private PlayerRepository playerRepository;
+  private Turn turn;
+
+
 
   private TurnRepository turnRepository;
 
 
-      private CardRepository cardRepository;
-
-
-      private PlayerRepository playerRepository;
-  private Turn thisTurn;
   private Player player;
   private Game game;
   private DrawPile drawPile;
   private Hand hand;
   private DiscardPile discardPile;
-  private PhaseState phaseState;
-  private HandRepository handRepository;
-  private DrawPileRepository drawPileRepository;
-  private DiscardPileRepository discardPileRepository;
-  ArrayList<Turn> allTurns;
+  private GameStates phaseState;
 
+
+  private ArrayList<Card> cardsInHand;
+  private ArrayList<Card> cardsInDiscard;
+  private ArrayList<Card> cardsInDrawPile;
+ // private HandRepository handRepository;
+ // private DrawPileRepository drawPileRepository;
+ // private DiscardPileRepository discardPileRepository;
 
   PlayerStateInfo(Game game, Player player) {
     this.game=game;
     this.player=player;
+    cardsInHand = player.getPlayerHand();
+    //cardsInHand.add(new Card("Militia", CardType.MILITIA, 4));
+   // cardsInHand.add(new Card("Copper", CardType.COPPER, 0));
+   // cardsInHand.add(new Card("Moat", CardType.MOAT, 2));
+  //  cardsInHand.add(new Card("Cellar", CardType.CELLAR, 2));
+  //  cardsInHand.add(new Card("Market", CardType.MARKET, 4));
+    this.hand = new Hand(cardsInHand);
+    cardsInDiscard = player.getPlayerDiscard();
+  //  cardsInDiscard.add(new Card("Militia", CardType.MILITIA, 4));
+  //  cardsInDiscard.add(new Card("Copper", CardType.COPPER, 0));
+  //  cardsInDiscard.add(new Card("Moat", CardType.MOAT, 2));
+   // cardsInDiscard.add(new Card("Cellar", CardType.CELLAR, 2));
+   // cardsInDiscard.add(new Card("Market", CardType.MARKET, 4));
+    this.discardPile = new DiscardPile(cardsInDiscard);
+    cardsInDrawPile = player.getPlayerDrawPile();
+   // cardsInDrawPile.add(new Card("Copper", CardType.COPPER, 0));
+  //  cardsInDrawPile.add(new Card("Copper", CardType.COPPER, 0));
+  //  cardsInDrawPile.add(new Card("Estate", CardType.ESTATE, 1));
+   // cardsInDrawPile.add(new Card("Estate", CardType.ESTATE, 1));
+   // cardsInDrawPile.add(new Card("Copper", CardType.COPPER, 0));
+  //  cardsInDrawPile.add(new Card("Copper", CardType.COPPER, 0));
+
+    this.drawPile = new DrawPile(cardsInDrawPile);
+   // this.turn = turnRepository.getCurrentTurn().get();
+   // this.hand = handRepository.getLastByPlayer(player);
+  //  this.discardPile = discardPileRepository.getLastByPlayer(player);
+  //  this.drawPile = drawPileRepository.getLastByPlayer(player);
+  }
+
+
+  /**public void saveAll(){
+    this.turnRepository.save(turn);
     allTurns = turnRepository.getAllByOrderByIdDesc();
     this.thisTurn = allTurns.get(allTurns.size()-1);
       this.hand = handRepository.getLastByPlayer(player);
@@ -61,27 +102,30 @@ public class PlayerStateInfo implements Serializable {
     }
     this.discardPileRepository.save(new DiscardPile(this.discardPile.getDiscardCards()));
    // this.handRepository.save(new Hand(this.hand.getCardsInHand()));
+    // this.handRepository.save(new Hand(this.hand.getCardsInHand()));
     this.drawPileRepository.save(new DrawPile(this.drawPile.getDrawPileCards()));
 
 
   }
+*/
 
-  public PhaseState getPhaseState() {
+  public GameStates getPhaseState() {
     return phaseState;
   }
 
   public void setPhaseState(
-      PhaseState phaseState) {
+      GameStates phaseState) {
     this.phaseState = phaseState;
   }
 
-  public Turn getThisTurn() {
-    return thisTurn;
+  public Turn getTurn() {
+    return turn;
   }
 
-  public void setThisTurn(Turn thisTurn) {
-    this.thisTurn = thisTurn;
+  public void setTurn(Turn turn) {
+    this.turn = turn;
   }
+
 
   public Player getPlayer() {
     return player;
@@ -125,15 +169,20 @@ public class PlayerStateInfo implements Serializable {
 
   public int calculateBuyingPower() {
     int buyingPower = 0;
-
+    ArrayList<Card> cardsInHand = getPlayer().getPlayerHand();
+    boolean doIHaveSilver = false;
+    for (Card card: cardsInHand){
+      if (card.getCardType().equals(CardType.SILVER)){
+        doIHaveSilver = true;
+      }
+    }
+    for (Card card: cardsInHand){
+      buyingPower+= card.getCardType().getMoneyValue();
+      if (card.getCardType().getExtraGoldIfSilver()!=0 && doIHaveSilver){
+        buyingPower+=card.getCardType().getExtraGoldIfSilver();
+      }
+    }
     return buyingPower;
-  }
-
-  public enum PhaseState {
-    DISCARDING,
-    TAKING_ACTION,
-    DOING_BUYS,
-    PASSIVE;
   }
 
 
