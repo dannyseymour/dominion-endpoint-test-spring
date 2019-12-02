@@ -43,10 +43,16 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
   public Game() {
   }
 
-  public Game(String player1Name, String player2Name) {
-    this.player1Name = player1Name;
-    this.player2Name = player2Name;
+  public Game(String player1UID, String player2UID, Player player1, Player player2) {
+    this.player1UID = player1UID;
+    this.player2UID = player2UID;
+    this.players.add(player1);
+    this.players.add(player2);
   }
+  public Game(String player1UID) {
+    this.player1UID = player1UID;
+  }
+
 
   /**
    * Creates the primary Game Id.
@@ -63,6 +69,11 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
   private Date created;
 
 
+@Column(name="stacks")
+HashMap<String, Integer> stack = new HashMap<>();
+
+@Column(name="players")
+ArrayList<Player> players = new ArrayList<>();
 
 
 
@@ -77,10 +88,10 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
    * throughout the game.
    */
 
-  @Column(name="player_1_name")
-  private String player1Name;
-  @Column(name="player_2_name")
-  private String player2Name;
+  @Column(name="player_1_uid")
+  private String player1UID;
+  @Column(name="player_2_uid")
+  private String player2UID;
 
 
 
@@ -118,8 +129,14 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
     return stack;
   }
 
+  public HashMap<String, Integer> getStack() {
+    return stack;
+  }
 
-  /**
+  public void setStack(HashMap<String, Integer> stack) {
+    this.stack = stack;
+  }
+/**
    * Gets players.
    *
    * @return the players
@@ -169,20 +186,8 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
     this.created = created;
   }
 
-  public String getPlayer1Name() {
-    return player1Name;
-  }
-
-  public void setPlayer1Name(String player1Name) {
-    this.player1Name = player1Name;
-  }
-
-  public String getPlayer2Name() {
-    return player2Name;
-  }
-
-  public void setPlayer2Name(String player2Name) {
-    this.player2Name = player2Name;
+  public void join(String player2UID){
+    this.player2UID = player2UID;
   }
 
   public int getCurrentTurn() {
@@ -193,4 +198,32 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
     this.currentTurn = currentTurn;
   }
 
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public String getPlayer1UID() {
+    return player1UID;
+  }
+
+  public void setPlayer1UID(String player1UID) {
+    this.player1UID = player1UID;
+  }
+
+  public String getPlayer2UID() {
+    return player2UID;
+  }
+
+  public void setPlayer2UID(String player2UID) {
+    this.player2UID = player2UID;
+  }
+
+  public ArrayList<Player> getPlayers() {
+    return players;
+  }
+
+  public void setPlayers(
+      ArrayList<Player> players) {
+    this.players = players;
+  }
 }

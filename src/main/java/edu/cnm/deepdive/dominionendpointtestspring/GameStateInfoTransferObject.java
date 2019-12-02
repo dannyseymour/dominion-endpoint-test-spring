@@ -1,6 +1,8 @@
 package edu.cnm.deepdive.dominionendpointtestspring;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -17,7 +19,21 @@ public class GameStateInfoTransferObject {
   String message;
   boolean successful;
   boolean wasAttacked;
-
+  int gameId;
+public GameStateInfoTransferObject(GameStates gameStates, int gameId){
+  this.whatState= String.valueOf(gameStates);
+  this.cardsInHand = new ArrayList<>();
+  myActionsRemaining= 0;
+  message="Waiting for 2nd Player";
+  myBuyingPower =0;
+  this.myVictoryPoints = 0;
+  this.theirVictoryPoints = 0;
+  this.myBuysRemaining = 0;
+  this.stacks = stacks;
+  this.playsMadeLastTurnByOtherPlayer = new ArrayList<>();
+  this.wasAttacked = false;
+  this.gameId = gameId;
+}
   public GameStateInfoTransferObject(
       List<Card> cardsInHand, int myVictoryPoints, int theirVictoryPoints, int myActionsRemaining,
       int myBuysRemaining, int myBuyingPower,

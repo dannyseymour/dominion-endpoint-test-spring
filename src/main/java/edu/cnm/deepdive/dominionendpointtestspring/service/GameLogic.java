@@ -155,26 +155,27 @@ public class GameLogic {
     //gameStateInfo.saveAll();
     return gameStateInfo;
   }
-  public HashMap<String, Integer> initializeStacks(HashMap<String, Integer> stack) {
-    stack.put("Bronze", 10);
-    stack.put("Silver", 8);
-    stack.put("Gold", 7);
-    stack.put("Estate", 10);
-    stack.put("Duchy", 12);
-    stack.put("Province", 15);
-    stack.put("Cellar", 9);
-    stack.put("Moat", 10);
-    stack.put("Village", 5);
-    stack.put("Workshop", 3);
-    stack.put("Smithy", 2);
-    stack.put("Remodel", 15);
-    stack.put("Militia", 9);
-    stack.put("Market", 8);
-    stack.put("Mine", 2);
-    stack.put("Merchant", 3);
-    stack.put("Trash", 0);
-    return stack;
-  }
+  public HashMap<String, Integer> initializeStacks() {
+      HashMap<String, Integer> stack = new HashMap<>();
+      stack.put("Copper", 60);
+      stack.put("Silver", 40);
+      stack.put("Gold", 30);
+      stack.put("Estate", 24);
+      stack.put("Duchy", 12);
+      stack.put("Province", 12);
+      stack.put("Cellar", 10);
+      stack.put("Moat", 10);
+      stack.put("Village", 10);
+      stack.put("Workshop", 10);
+      stack.put("Smithy", 10);
+      stack.put("Remodel", 10);
+      stack.put("Militia", 10);
+      stack.put("Market", 10);
+      stack.put("Mine", 10);
+      stack.put("Merchant", 10);
+      stack.put("Trash", 0);
+      return stack;
+    }
 
 /**
   public void startTurn(Optional<Player> player){

@@ -23,13 +23,14 @@ import javax.persistence.Table;
 @Table
 public class Player implements Serializable {
 
-  public Player(String userName, long id) {
-this.id = id;
+  public Player(String userName) {
+
 this.userName = userName;
   }
 
   @Id
   @Column(name="player_id", updatable = false, nullable = false)
+  @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
   @Column(name = "user_name", nullable = true, updatable = false)
@@ -45,7 +46,11 @@ this.userName = userName;
   @Column(name = "cards_in_draw_pile", nullable = true)
   private ArrayList<Card> playerDrawPile;
 
+  @Column(name="firebase_fcm_registration_token")
+ private  String playerFCMRegistrationToken;
 
+  @Column(name="Uid")
+  private String uid;
 
   public ArrayList<Card> getPlayerDiscard() {
     return playerDiscard;
@@ -54,6 +59,14 @@ this.userName = userName;
   public void setPlayerDiscard(
       ArrayList<Card> playerDiscard) {
     this.playerDiscard = playerDiscard;
+  }
+
+  public String getPlayerFCMRegistrationToken() {
+    return playerFCMRegistrationToken;
+  }
+
+  public void setPlayerFCMRegistrationToken(String playerFCMRegistrationToken) {
+    this.playerFCMRegistrationToken = playerFCMRegistrationToken;
   }
 
   public ArrayList<Card> getPlayerDrawPile() {
@@ -97,6 +110,9 @@ this.userName = userName;
 
   @Column(name="player_state")
   private String playerState;
+
+  @Column(name="game_order")
+  private int gameOrder;
 
 
   /**@OneToMany(mappedBy= "deck", cascade = CascadeType.ALL)
@@ -240,6 +256,14 @@ this.userName = userName;
     this.playerState = playerState;
   }
 
+  public String getUid() {
+    return uid;
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
   /**
    * Sets num buy.
    *
@@ -291,6 +315,11 @@ this.userName = userName;
   }
 */
 
+  public int getGameOrder() {
+    return gameOrder;
+  }
 
-
+  public void setGameOrder(int gameOrder) {
+    this.gameOrder = gameOrder;
+  }
 }

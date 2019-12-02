@@ -4,6 +4,8 @@ target/
 !**/src/main/**
 !**/src/test/**
 
+./src/dominion-android-testing-firebase-adminsdk-xe8uj-079c4963d3.json
+
 ### STS ###
 .apt_generated
 .classpath
