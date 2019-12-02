@@ -29,7 +29,7 @@ this.uid = uid;
   }
 
   @Id
-  @Column(name="player_id", updatable = false, nullable = false)
+  @Column(name="player_id", updatable = false)
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
