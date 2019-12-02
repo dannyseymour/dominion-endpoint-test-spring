@@ -58,6 +58,14 @@ public class GameController {
   @PostMapping(value="/newgame/{uid}")
   public GameStateInfoTransferObject startNewGame(@PathVariable("uid") String uid)
       throws FirebaseMessagingException {
+    if (gameRepository.getAllByOrderByIdDesc().size()==0){
+      Game newGame = new Game(uid);
+      newGame.setCurrentState(GameStates.INITIAL);
+      gameRepository.save(newGame);
+      int gameID = newGame.getId();
+     // firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
+      return newGameSolo(GameStates.INITIAL, gameID);
+    }
     ArrayList<Game> games = gameRepository.getAllByOrderByIdDesc();
 
     for (Game game : games){
@@ -71,17 +79,17 @@ public class GameController {
        players.add(playerOne);
        players.add(playerTwo);
         game.setPlayers(players);
-        firebaseMessagingSnippets.sendToTokenGameStart(playerTwo.getPlayerFCMRegistrationToken(),
-            game.getId(),playerOne.getUserName(), 2);
-        firebaseMessagingSnippets.sendToTokenGameStart(playerOne.getPlayerFCMRegistrationToken(),
-            game.getId(), playerTwo.getUserName(), 1);
+       // firebaseMessagingSnippets.sendToTokenGameStart(playerTwo.getPlayerFCMRegistrationToken(),
+       //     game.getId(),playerOne.getUserName(), 2);
+       // firebaseMessagingSnippets.sendToTokenGameStart(playerOne.getPlayerFCMRegistrationToken(),
+       //     game.getId(), playerTwo.getUserName(), 1);
         //TODO fix
         return null;
       }else{
         Game newGame = new Game(uid);
         gameRepository.save(newGame);
-        int gameID = game.getId();
-        firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
+        int gameID = newGame.getId();
+      //  firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
         return newGameSolo(GameStates.INITIAL, gameID);
       }
     }

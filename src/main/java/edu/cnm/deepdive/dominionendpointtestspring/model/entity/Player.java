@@ -23,9 +23,9 @@ import javax.persistence.Table;
 @Table
 public class Player implements Serializable {
 
-  public Player(String userName) {
+  public Player(String uid) {
 
-this.userName = userName;
+this.uid = uid;
   }
 
   @Id
