@@ -43,11 +43,14 @@ public class Game extends AbstractPersistable<Integer> implements Serializable, 
   public Game() {
   }
 
-  public Game(String player1UID, String player2UID, Player player1, Player player2) {
-    this.player1UID = player1UID;
-    this.player2UID = player2UID;
+  public Game(Player player1, Player player2) {
+
     this.players.add(player1);
     this.players.add(player2);
+  }
+  public Game(Player player1) {
+    this.players.add(player1);
+
   }
   public Game(String player1UID) {
     this.player1UID = player1UID;
@@ -186,8 +189,8 @@ ArrayList<Player> players = new ArrayList<>();
     this.created = created;
   }
 
-  public void join(String player2UID){
-    this.player2UID = player2UID;
+  public void join(Player player2){
+    this.players.add(player2);
   }
 
   public int getCurrentTurn() {

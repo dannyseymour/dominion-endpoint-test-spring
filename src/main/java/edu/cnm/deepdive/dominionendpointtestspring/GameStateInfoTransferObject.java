@@ -34,11 +34,12 @@ public GameStateInfoTransferObject(GameStates gameStates, int gameId){
   this.wasAttacked = false;
   this.gameId = gameId;
 }
-  public GameStateInfoTransferObject(
+  public GameStateInfoTransferObject(int gameId,
       List<Card> cardsInHand, int myVictoryPoints, int theirVictoryPoints, int myActionsRemaining,
       int myBuysRemaining, int myBuyingPower,
      HashMap<String, Integer> stacks,
       List<String> playsMadeLastTurnByOtherPlayer, String whatState, boolean wasAttacked) {
+  this.gameId = gameId;
     this.cardsInHand = cardsInHand;
     this.myVictoryPoints = myVictoryPoints;
     this.theirVictoryPoints = theirVictoryPoints;
@@ -69,6 +70,24 @@ public GameStateInfoTransferObject(GameStates gameStates, int gameId){
     this.message = message;
     this.successful = successful;
     this.wasAttacked = wasAttacked;
+  }
+
+  public GameStateInfoTransferObject(Integer id, ArrayList<Card> cardsInHand, int playerScore, int playerScore1, int actionsRemaining, int buysRemaining, int calculateBuyingPower,
+      HashMap<String, Integer> stacks, List<String> playsInPreviousTurn, String state, boolean wasAttacked, String message, boolean wasSuccessful) {
+  this.gameId = id;
+  this.cardsInHand = cardsInHand;
+  this.myVictoryPoints = playerScore;
+  this.theirVictoryPoints = playerScore1;
+  this.myActionsRemaining = actionsRemaining;
+  this.myBuysRemaining = buysRemaining;
+  this.myBuyingPower = calculateBuyingPower;
+  this.stacks = stacks;
+  this. playsMadeLastTurnByOtherPlayer = playsInPreviousTurn;
+  this.whatState = state;
+  this.wasAttacked = wasAttacked;
+  this.message = message;
+  this.successful = wasSuccessful;
+
   }
 
   public List<Card> getCardsInHand() {

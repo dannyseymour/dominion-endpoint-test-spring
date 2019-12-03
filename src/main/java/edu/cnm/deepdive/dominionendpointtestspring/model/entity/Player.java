@@ -23,9 +23,9 @@ import javax.persistence.Table;
 @Table
 public class Player implements Serializable {
 
-  public Player(String uid) {
+  public Player(String oauthKey) {
 
-this.uid = uid;
+this.oauthKey = oauthKey;
   }
 
   @Id
@@ -33,8 +33,8 @@ this.uid = uid;
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column(name = "user_name", nullable = true, updatable = false)
-  private String userName;
+  @Column(name = "key")
+  private String key;
 
   @Column(name = "player_score")
   private int playerScore;
@@ -50,7 +50,7 @@ this.uid = uid;
  private  String playerFCMRegistrationToken;
 
   @Column(name="Uid")
-  private String uid;
+  private String oauthKey;
 
   public ArrayList<Card> getPlayerDiscard() {
     return playerDiscard;
@@ -217,12 +217,12 @@ this.uid = uid;
    * @return the player's number of buys.
    */
 
-  public String getUserName() {
-    return userName;
+  public String getKey() {
+    return key;
   }
 
-  public void setUserName(String userName) {
-    this.userName = userName;
+  public void setKey(String key) {
+    this.key = key;
   }
 /**
   public ArrayList<Game> getGames() {
@@ -256,12 +256,12 @@ this.uid = uid;
     this.playerState = playerState;
   }
 
-  public String getUid() {
-    return uid;
+  public String getOauthKey() {
+    return oauthKey;
   }
 
-  public void setUid(String uid) {
-    this.uid = uid;
+  public void setOauthKey(String oauthKey) {
+    this.oauthKey = oauthKey;
   }
 
   /**

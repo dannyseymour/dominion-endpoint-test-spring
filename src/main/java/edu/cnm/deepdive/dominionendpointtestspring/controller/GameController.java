@@ -16,10 +16,13 @@ import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,93 +58,87 @@ public class GameController {
   public GameController() {
 
   }
-  @PostMapping(value="/newgame/{uid}")
-  public GameStateInfoTransferObject startNewGame(@PathVariable("uid") String uid)
-      throws FirebaseMessagingException {
+  @PostMapping(value="/newgame")
+  public GameStateInfoTransferObject startNewGame(Authentication authentication) {
+    Player player = (Player) authentication.getPrincipal();
+    /**
+     * If this is the first game in the database, create new and set to Waiting
+     */
     if (gameRepository.getAllByOrderByIdDesc().size()==0){
-      Game newGame = new Game(uid);
-      newGame.setCurrentState(GameStates.INITIAL);
+      Game newGame = new Game();
+      newGame.getPlayers().add(player);
+      player.setGameOrder(1);
+      newGame.setCurrentState(GameStates.WAITING);
       gameRepository.save(newGame);
       int gameID = newGame.getId();
      // firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
       return newGameSolo(GameStates.INITIAL, gameID);
     }
-    ArrayList<Game> games = gameRepository.getAllByOrderByIdDesc();
-
-    for (Game game : games){
-      if (game.getCurrentState().equals(GameStates.INITIAL)){
-       game.join(uid);
-       Player playerTwo = playerRepository.getPlayerByUid(uid);
-       playerTwo.setGameOrder(2);
-       Player playerOne = playerRepository.getPlayerByUid(game.getPlayer1UID());
-       playerOne.setGameOrder(1);
-       ArrayList<Player> players = new ArrayList<>();
-       players.add(playerOne);
-       players.add(playerTwo);
-        game.setPlayers(players);
-       // firebaseMessagingSnippets.sendToTokenGameStart(playerTwo.getPlayerFCMRegistrationToken(),
-       //     game.getId(),playerOne.getUserName(), 2);
-       // firebaseMessagingSnippets.sendToTokenGameStart(playerOne.getPlayerFCMRegistrationToken(),
-       //     game.getId(), playerTwo.getUserName(), 1);
-        //TODO fix
-        return null;
-      }else{
-        Game newGame = new Game(uid);
-        gameRepository.save(newGame);
-        int gameID = newGame.getId();
-      //  firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
-        return newGameSolo(GameStates.INITIAL, gameID);
-      }
+    /**
+     * otherwise get the first game in the database that is in the WAITING state and sets the players
+     */
+    Optional<Game> newGame = Optional
+        .ofNullable(gameRepository.getFirstByCurrentState(GameStates.WAITING));
+    if (newGame.isPresent()){
+      newGame.get().join(player);
+      player.setGameOrder(2);
+      Player playerTwo = player;
+      Player playerOne = newGame.get().getPlayers().get(0);
+     // Player playerTwo = playerRepository.getPlayerByOauthKey(uid);
+     // playerTwo.setGameOrder(2);
+     // Player playerOne = playerRepository.getPlayerByOauthKey(newGame.get().getPlayer1UID());
+     // playerOne.setGameOrder(1);
+      Turn firstTurn = new Turn(newGame.get(), playerOne);
+      stateMachine.sendEvent(GameEvents.START_GAME);
+      newGame.get().setStack(gameLogic.initializeStacks());
+      GameStateInfo gameState = new GameStateInfo(newGame.get(), firstTurn,
+         playerOne,
+          playerTwo);
+      return buildTransferObjectWithWrapper(gameState, true, "Game Created!");
     }
-    return null;
+    else{
+      Game newGameNonNull = new Game(player);
+      gameRepository.save(newGameNonNull);
+      newGameNonNull.setCurrentState(GameStates.WAITING);
+      int gameID = newGameNonNull.getId();
+      //  firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
+      return newGameSolo(GameStates.WAITING, gameID);
+    }
+
   }
 
   public GameStateInfoTransferObject newGameSolo(GameStates gameStates, int gameId) {
     return new GameStateInfoTransferObject(gameStates, gameId);
 
   }
-  @GetMapping(value="/getmynewgame/{gameid}/{uid}")
-  public GameStateInfoTransferObject getInitialConditions(@PathVariable("gameid") int gameId,
-   @PathVariable("uid") String uid){
+  @GetMapping("/getmynewgame/{gameid}")
+  public GameStateInfoTransferObject getInitialConditions(@PathVariable("gameid") int gameId, Authentication authentication){
     Game game = gameRepository.getGameById(gameId);
-    Player player = playerRepository.getPlayerByUid(uid);
-    Turn firstTurn = new Turn(game, playerRepository.getPlayerByUid(game.getPlayer1UID()));
+    Player player = (Player) authentication.getPrincipal();
+    Turn firstTurn = new Turn(game,player);
     stateMachine.sendEvent(GameEvents.START_GAME);
     game.setStack(gameLogic.initializeStacks());
-    GameStateInfo gameState = new GameStateInfo(game, firstTurn, playerRepository.getPlayerByUid(game.getPlayer1UID())
-        ,playerRepository.getPlayerByUid(game.getPlayer2UID()));
+    GameStateInfo gameState = new GameStateInfo(game, firstTurn, playerRepository.getPlayerByOauthKey(game.getPlayer1UID())
+        ,playerRepository.getPlayerByOauthKey(game.getPlayer2UID()));
     return buildTransferObjectWithWrapper(gameState, true, "Game Created!");
   }
-  private GameStateInfo startNewGame() {
-    //GameParameters.setPlayer1(new Player("Danny", 1L));
-  //  GameParameters.setPlayer2(new Player("Erica", 2L));
-    //Game game = new Game("Danny", "Erica");
-   // gameRepository.save(game);
-   // GameParameters.setCurrentGame(game);
-
- //   GameParameters.setCurrentTurn(firstTurn);
-  //  turnRepository.save(firstTurn);
-  //  GameParameters.setCurrentPlayer(gameParameters.getPlayer1());
-  //  stateMachine.sendEvent(GameEvents.START_GAME);
-  //  GameParameters.setStacks(initializeStacks());
- //   GameStateInfo gameState = new GameStateInfo(game, GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
-  return null;
-  }
 
 
 
-  @GetMapping(value = "/getstate")
+
+  @GetMapping("getstate/{gameid}")
   public String getState() {
     return stateMachine.getState().getId().toString();
   }
 
 
-  @PostMapping("/{uid}/{gameid}/endphase")
-  public GameStateInfoTransferObject endPhase(@PathVariable("uid") String uid, @PathVariable("gameid") int gameId) {
+  @PostMapping("/endphase/{gameid}")
+  public GameStateInfoTransferObject endPhase(Authentication authentication, @PathVariable("gameid") int gameId) {
     Game thisGame = gameRepository.getGameById(gameId);
     Player player1 = thisGame.getPlayers().get(0);
     Player player2 = thisGame.getPlayers().get(1);
-    int playerPlace = playerRepository.getPlayerByUid(uid).getGameOrder();
+    Player thisPlayer = (Player) authentication.getPrincipal();
+    int playerPlace = thisPlayer.getGameOrder();
     boolean isOver;
     String message = "";
     boolean wasSuccessful = true;
@@ -218,79 +215,7 @@ public class GameController {
     return buildTransferObjectWithWrapper(gameState, wasSuccessful, message);
 
   }
-/**
-  @PostMapping("/endphase")
-  public GameStateInfoTransferObject endPhase() {
-    boolean isOver;
-    Turn turn = GameParameters.getCurrentTurn();
-    switch (stateMachine.getState().getId()) {
-      case PLAYER_1_DISCARDING:
-
-        stateMachine.sendEvent(GameEvents.PLAYER_1_END_DISCARDS);
-        break;
-      case PLAYER_1_ACTION:
-        stateMachine.sendEvent(GameEvents.PLAYER_1_END_ACTIONS);
-
-        break;
-      case PLAYER_1_BUYING:
-
-        isOver = gameLogic.testForVictory();
-        if (isOver) {
-          stateMachine.sendEvent(GameEvents.END_GAME);
-        } else {
-
-         // if (GameParameters.getCurrentTurn().isDidAttack()) {
-        //    stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
-        //  } else {
-            stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-         // }
-         createNewTurn();
-        }
-
-        break;
-      case PLAYER_2_DISCARDING:
-
-        stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-
-        break;
-      case PLAYER_2_ACTION:
-
-        stateMachine.sendEvent(GameEvents.PLAYER_2_END_ACTIONS);
-
-        break;
-      case PLAYER_2_BUYING:
-        isOver = gameLogic.testForVictory();
-        if (isOver) {
-          stateMachine.sendEvent(GameEvents.END_GAME);
-        } else {
-
-          if (GameParameters.getCurrentTurn().isDidAttack()) {
-           stateMachine.sendEvent(GameEvents.PLAYER_1_END_BUYS);
-          } else {
-            stateMachine.sendEvent(GameEvents.PLAYER_2_END_DISCARDS);
-         }
-          createNewTurn();
-        }
-        break;
-      default:
-        break;
-    }
-    GameParameters.setCurrentState(stateMachine.getState().getId());
-    GameStateInfo gameState = new GameStateInfo(GameParameters.getCurrentGame(),
-        GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
-    GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
-    return gameStateInfoTransferObject;
-  }
-*/
-/**
-  private void createNewTurn() {
-    Turn turn = new Turn(GameParameters.getCurrentGame(),
-        GameParameters.getCurrentPlayer());
-    GameParameters.setCurrentPlayer(GameParameters.getPlayer1());
-    GameParameters.setCurrentTurn(turn);
-    turnRepository.save(turn);
-  }*/
-  @GetMapping(value = "/gamestateinfo")
+  @GetMapping("gamestateinfo/{gameid}")
   public GameStateInfoTransferObject getGameState() {
     GameStateInfo gameState;
     //gameState = startNewGame();
@@ -316,36 +241,9 @@ public class GameController {
     return null;
   }
 
-  @PostMapping(value = "/newgame")
-  public GameStateInfoTransferObject getNewGame() {
-    /**
-    GameStateInfo gameState;
-    //gameState = startNewGame();
-    GameParameters.setPlayer1(new Player("Danny", 1L));
-    GameParameters.setPlayer2(new Player("Erica", 2L));
-    Game game = new Game("Danny", "Erica");
-    //gameRepository.save(game);
-    GameParameters.setCurrentGame(game);
-    Turn firstTurn = new Turn(game, gameParameters.getPlayer1());
-    GameParameters.setCurrentTurn(firstTurn);
-    //turnRepository.save(firstTurn);
-    GameParameters.setCurrentPlayer(gameParameters.getPlayer1());
-    stateMachine.sendEvent(GameEvents.START_GAME);
-    GameParameters.setStacks(initializeStacks());
-   gameState = new GameStateInfo(game, GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
-   /** if (GameParameters.getCurrentGame() == null) {
-      gameState = startNewGame();
-    } else {
-      gameState = new GameStateInfo(GameParameters.getCurrentGame(),
-          GameParameters.getCurrentTurn(), GameParameters.getPlayer1(),GameParameters.getPlayer2());
-    }*/
-  //  GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "You need to discard before taking actions!");
-    //return gameStateInfoTransferObject;
-  return null;
-  }
 
 
-  private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
+ /** private GameStateInfoTransferObject buildTransferObject(GameStateInfo gameState) {
     Turn lastTurn = getSpecificTurnsAgo(2);
     GameStateInfoTransferObject transfer = new GameStateInfoTransferObject(
         gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
@@ -360,13 +258,13 @@ public class GameController {
         (lastTurn.isDidAttack()&&(!gameState.getCurrentPlayerStateInfo().getPlayer().isHasMoat()))
     );
     return transfer;
-  }
+  }*/
 
 
   private GameStateInfoTransferObject buildTransferObjectWithWrapper(GameStateInfo gameState,
       boolean wasSuccessful, String message) {
     Turn lastTurn = getSpecificTurnsAgo(2);
-    GameStateInfoTransferObject transfer = new GameStateInfoTransferObject(
+    GameStateInfoTransferObject transfer = new GameStateInfoTransferObject(gameState.getGame().getId(),
         gameState.getPlayerStateInfoPlayer1().getHand().getCardsInHand(),
         gameState.getPlayerStateInfoPlayer1().getPlayer().getPlayerScore(),
         gameState.getPlayerStateInfoPlayer2().getPlayer().getPlayerScore(),
@@ -390,12 +288,13 @@ public class GameController {
   }
 
 
-  @PostMapping("/{gameid}/{playeruid}{cardname}/buy")
-  public GameStateInfoTransferObject playerBuysTarget(@PathVariable ("gameid") int gameId,
-      @PathVariable("playeruid") String uid,
-      @PathVariable ("cardname") String cardName) {
+  @PostMapping("/buy/{gameid}/{cardname}")
+  public GameStateInfoTransferObject playerBuysTarget(Authentication authentication,
+      @PathVariable("gameid") int gameId,
+      @PathVariable ("cardname") String cardName,
+      @RequestBody List<String> otherCards) {
     Game thisGame = gameRepository.getGameById(gameId);
-    Player thisPlayer = playerRepository.getPlayerByUid(uid);
+    Player thisPlayer = (Player) authentication.getPrincipal();
     Turn thisTurn = getSpecificTurnsAgo(1);
     GameStateInfo gameStateInfo = new GameStateInfo(thisGame,
         thisTurn,  thisGame.getPlayers().get(0),thisGame.getPlayers().get(1));
@@ -405,7 +304,7 @@ public class GameController {
         if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(0))
             && stateMachine.getState().getId().equals(GameStates.PLAYER_1_BUYING)){
           GameStateInfo gameState = gameLogic.buyTarget(cardType, thisGame.getPlayers().get(1), gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "Bought "+cardName);
           return gameStateInfoTransferObject;
         }
 
@@ -413,7 +312,7 @@ public class GameController {
         if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(1))
             && stateMachine.getState().getId().equals(GameStates.PLAYER_2_BUYING)){
           GameStateInfo gameState = gameLogic.buyTarget(cardType, thisGame.getPlayers().get(1), gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "Bought "+cardName);
           return gameStateInfoTransferObject;
         }
     }
@@ -421,15 +320,20 @@ public class GameController {
     GameStateInfoTransferObject transfer = buildTransferObjectWithWrapper(gameStateInfo, false, "Invalid Action");
    return transfer;
   }
-  @PostMapping("/{gameid}/{uid}/{cardname}/action")
+  @PostMapping("/action/{gameid}/{cardname}")
   public GameStateInfoTransferObject playCard(@PathVariable ("gameid") int gameId,
-      @PathVariable ("uid") String uid,
-      @PathVariable ("cardname") String cardName, @RequestBody ArrayList<Card> cards){
+      Authentication authentication,
+      @PathVariable ("cardname") String cardName, @RequestBody ArrayList<String> otherCards){
     Game thisGame = gameRepository.getGameById(gameId);
-    Player thisPlayer = playerRepository.getPlayerByUid(uid);
+    Player thisPlayer = (Player) authentication.getPrincipal();
     Turn thisTurn = getSpecificTurnsAgo(1);
     GameStateInfo gameStateInfo = new GameStateInfo(thisGame,
         thisTurn,  thisGame.getPlayers().get(0),thisGame.getPlayers().get(1));
+    ArrayList<Card> cards = new ArrayList<>();
+    for (String string : otherCards){
+      CardType cardType = CardType.valueOf(string);
+      cards.add(new Card(cardType));
+    }
     CardType cardType = CardType.valueOf(cardName);
     switch(thisPlayer.getGameOrder()){
       case 1:
@@ -437,7 +341,7 @@ public class GameController {
         if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(0))
           && stateMachine.getState().getId().equals(GameStates.PLAYER_1_ACTION)){
           GameStateInfo gameState = gameLogic.playCardWithCards(cardType, thisGame.getPlayers().get(0), cards, gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "Played "+cardName);
           return gameStateInfoTransferObject;
         }
 
@@ -445,7 +349,7 @@ public class GameController {
         if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(1))&&
             stateMachine.getState().getId().equals(GameStates.PLAYER_2_ACTION)){
           GameStateInfo gameState = gameLogic.playCardWithCards(cardType, thisGame.getPlayers().get(1), cards, gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "Played "+cardName);
           return gameStateInfoTransferObject;
         }
     }
@@ -454,29 +358,31 @@ public class GameController {
     return transfer;
   }
 
-  @PostMapping("/{playerid}/discard")
+  @PostMapping("/discard/{gameid}/{cardname}")
   public GameStateInfoTransferObject discardForMilitia(@PathVariable ("gameid") int gameId,
-      @PathVariable ("uid") String uid,
-      @PathVariable ("cardname") String cardName, @RequestBody ArrayList<Card> cards){
+      Authentication authentication,
+      @PathVariable ("cardname") String cardName){
     Game thisGame = gameRepository.getGameById(gameId);
-    Player thisPlayer = playerRepository.getPlayerByUid(uid);
+    Player thisPlayer = (Player) authentication.getPrincipal();
     Turn thisTurn = getSpecificTurnsAgo(1);
+    CardType cardType = CardType.valueOf(cardName);
+    Card card = new Card(cardType);
     GameStateInfo gameStateInfo = new GameStateInfo(thisGame,
         thisTurn,  thisGame.getPlayers().get(0),thisGame.getPlayers().get(1));
     switch(thisPlayer.getGameOrder()){
       case 1:
         if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(0))
             && stateMachine.getState().getId().equals(GameStates.PLAYER_1_DISCARDING)){
-          GameStateInfo gameState = gameLogic.militiaDiscard(cards, thisGame.getPlayers().get(0), gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+          GameStateInfo gameState = gameLogic.militiaDiscard(card, thisGame.getPlayers().get(0), gameStateInfo);
+          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "Discarded " +cardName);
           return gameStateInfoTransferObject;
         }
 
       case 2:
         if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(1))
             && stateMachine.getState().getId().equals(GameStates.PLAYER_2_DISCARDING)){
-          GameStateInfo gameState = gameLogic.militiaDiscard(cards, thisGame.getPlayers().get(0), gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
+          GameStateInfo gameState = gameLogic.militiaDiscard(card, thisGame.getPlayers().get(1), gameStateInfo);
+          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObjectWithWrapper(gameState, true, "Discarded "+cardName );
           return gameStateInfoTransferObject;
         }
     }

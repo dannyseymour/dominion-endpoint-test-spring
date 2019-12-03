@@ -17,9 +17,9 @@ public interface PlayerRepository extends JpaRepository<Player,Long> {
   void deleteAll();
 
 
+  Optional<Player> getFirstByKey(String key);
 
 
 
-
-  Player getPlayerByUid(String uid);
+  Player getPlayerByOauthKey(String uid);
 }

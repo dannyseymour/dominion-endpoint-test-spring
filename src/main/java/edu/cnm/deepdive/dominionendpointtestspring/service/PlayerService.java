@@ -13,14 +13,14 @@ public class PlayerService {
   public PlayerService(PlayerRepository repository) {
     this.repository = repository;
   }
-/**
+
   public Player getOrCreatePlayer(String oauthKey) {
-    return repository.getPlayerByUserName(oauthKey)
+    return repository.getFirstByKey(oauthKey)
         .orElseGet(() -> {
-        //  Player player = new Player(oauthKey);
-         // player.setOauthKey(oauthKey);
-         // return repository.save(player);
+         Player player = new Player(oauthKey);
+         player.setOauthKey(oauthKey);
+         return repository.save(player);
         });
   }
-*/
+
 }

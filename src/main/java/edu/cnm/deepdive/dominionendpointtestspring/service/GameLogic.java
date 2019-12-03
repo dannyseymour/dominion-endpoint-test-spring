@@ -232,7 +232,7 @@ public class GameLogic {
   }
 
 
-  public GameStateInfo militiaDiscard(ArrayList<Card> cards, Player player, GameStateInfo gameStateInfo) {
+  public GameStateInfo militiaDiscard(Card card, Player player, GameStateInfo gameStateInfo) {
 
     return gameStateInfo;
   }
