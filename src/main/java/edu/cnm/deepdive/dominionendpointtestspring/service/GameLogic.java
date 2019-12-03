@@ -84,17 +84,7 @@ public class GameLogic {
     stateMachine.sendEvent(message);
   }
 
- /** public void initGame(String oAuthKey){
-    this.game= new Game();
-    game.setStacks(initializeStacks(game.getStacks()));
-    gameRepository.save(game);
-    //TODO modify to bring in lobby, Oauth credentials, etc
 
-    playerRepository.save(playerService.getOrCreatePlayer(oAuthKey));
-    signalMachine(GameEvents.START_GAME);
-    }
-
-*/
 
   public GameStateInfo buyTarget(CardType cardType, Player player, GameStateInfo gameStateInfo){
 
@@ -132,23 +122,6 @@ public class GameLogic {
     //testForVictory(currentGameState);
     return false;
   }
-/**
-  private void testForVictory(GameStateInfo gameStateInfo) {
-    List<Stack> currentStacks = gameStateInfo.getStacks();
-   if (currentStacks.get(5).getStackCount()==0){
-     endGame();
-   }
-    int zeroCounter = 0;
-    for (Stack currentStack : currentStacks) {
-      if (currentStack.getStackCount() == 0) {
-        zeroCounter++;
-      }
-    }
-    if (zeroCounter >=3){
-      endGame();
-    }
-  }
-*/
   public GameStateInfo discard(GameStateInfo gameStateInfo, Card... cards) {
     ArrayList discardCards = new ArrayList(Arrays.asList(cards.clone()));
     gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(discardCards);
@@ -177,17 +150,7 @@ public class GameLogic {
       return stack;
     }
 
-/**
-  public void startTurn(Optional<Player> player){
-    if (player.get().getId() == 1) {
-      initTurn(player.get());
-      signalMachine(Events.PLAYER_1_START);
-    }else{
-      initTurn(player.get());
-      signalMachine(GameEvents.PLAYER_2_START);
-    }
-  }
-*/
+
   public void initTurn(Player thisPlayer, Player otherPlayer){
     Turn thisTurn = new Turn(getCurrentGame(), thisPlayer);
     turnRepository.save(thisTurn);

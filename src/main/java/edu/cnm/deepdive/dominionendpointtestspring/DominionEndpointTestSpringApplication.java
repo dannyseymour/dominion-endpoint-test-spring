@@ -30,16 +30,6 @@ public class DominionEndpointTestSpringApplication extends ResourceServerConfigu
   public static void main(String[] args) throws IOException {
     SpringApplication.run(DominionEndpointTestSpringApplication.class, args);
 
-    FileInputStream serviceAccount =
-        new FileInputStream("src/dominion-android-testing-firebase-adminsdk-xe8uj-079c4963d3.json");
-
-    FirebaseOptions options = new FirebaseOptions.Builder()
-        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-        .setDatabaseUrl("https://dominion-android-testing.firebaseio.com")
-        .build();
-
-    FirebaseApp.initializeApp(options);
-   // FileInputStream refreshToken = new FileInputStream("path/to/refreshToken.json");
 
 
   }
@@ -78,7 +68,7 @@ public class DominionEndpointTestSpringApplication extends ResourceServerConfigu
   @Override
   public void configure(HttpSecurity http) throws Exception {
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    // http.authorizeRequests().anyRequest().anonymous();
-    http.authorizeRequests().anyRequest().hasRole("USER");
+    http.authorizeRequests().anyRequest().anonymous();
+   // http.authorizeRequests().anyRequest().hasRole("USER");
   }
 }
