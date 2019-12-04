@@ -26,29 +26,6 @@ public class DominionEndpointTestSpringApplication extends ResourceServerConfigu
 
   }
 
-/**
-@Bean
-  public StateMachine<ApplicationReviewStates, ApplicationReviewEvents> buildMachine() throws Exception {
-    Builder<ApplicationReviewStates, ApplicationReviewEvents> builder = StateMachineBuilder.builder();
-
-    builder.configureStates()
-        .withStates()
-        .initial(ApplicationReviewStates.PEER_REVIEW)
-        .states(EnumSet.allOf(ApplicationReviewStates.class));
-
-    builder.configureTransitions()
-        .withExternal()
-        .source(ApplicationReviewStates.PEER_REVIEW).target(ApplicationReviewStates.APPROVED)
-        .event(ApplicationReviewEvents.APPROVE)
-        .and()
-        .withExternal()
-        .source(ApplicationReviewStates.APPROVED).target(ApplicationReviewStates.REJECTED)
-        .event(ApplicationReviewEvents.REJECT);
-
-    return builder.build();
-  }
-*/
-
 
 
 

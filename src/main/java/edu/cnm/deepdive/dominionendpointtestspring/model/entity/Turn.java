@@ -5,6 +5,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGame;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayer;
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,7 +17,7 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.lang.NonNull;
-
+@Entity
 public class Turn {
 
   @Id
