@@ -2,9 +2,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GameRepository;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
+
 import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.GameStateInfo;
 import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.PhaseState;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
@@ -40,29 +38,6 @@ public class GameController {
     this.gameRepository = gameRepository;
   }
 
-
-
-
-  @PostMapping(value = "newgame")
-  public GameStateInfo newGame(Authentication authentication) {
-
-    return new GameStateInfo(1, null, 0, 0, 1, 1,
-        0, false, null, null, PhaseState.INITIAL, false, true);
-  }
-
-  @GetMapping("gamestateinfo/{gameid}")
-  public GameStateInfo getGameStateInfo(Authentication authentication, @PathVariable("gameid") int gameId) {
-    return new GameStateInfo(gameId, null, 0, 0, 1, 1,
-        0, false, null, null, PhaseState.INITIAL, false, true);
-  }
-
-
-  @GetMapping("getstate/{gameid}")
-  public GameState getCurrentPhaseState(
-      Authentication authentication,
-      @PathVariable("gameid") int gameId) {
-    return GameState.INITIAL;
-  }
 
 
   @PostMapping("/getmynewgame/{gameid}")
