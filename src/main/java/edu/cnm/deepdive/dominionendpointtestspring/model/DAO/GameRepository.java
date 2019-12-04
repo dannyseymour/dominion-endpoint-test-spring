@@ -15,18 +15,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GameRepository extends CrudRepository<Game, Long> {
 
-  Game getGameById(long id);
-
-  ArrayList<Game> getAllByOrderByIdDesc();
-
-  Game getFirstByCurrentState(GameState gameState);
-
-  Optional<Game> findFirstByCurrentState(GameState state);
-
-@Query(value = "SELECT DISTINCT g FROM game g INNER JOIN game_player gp ON gp.game_id = g.game_id WHERE "
-    + "g.game_id = :gameId AND gp.player_id = :playerId")
-  Optional<Game> findByIdAndPlayer(long gameId, long playerId);
-
-
 
 }

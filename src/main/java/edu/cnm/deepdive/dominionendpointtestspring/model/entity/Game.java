@@ -76,10 +76,7 @@ public class Game implements FlatGame {
   @JsonSerialize(contentAs = FlatGameGamePlayer.class)
   private List<GamePlayer> gamePlayers = new LinkedList<>();
 
-  @OneToMany(mappedBy = "game", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  @OrderBy(value = "id")
-  @JsonIgnore
-  private List<Turn> turns  = new LinkedList<>();
+
 
   @Override
   public Long getId() {
@@ -119,11 +116,5 @@ public class Game implements FlatGame {
     return gamePlayers;
   }
 
-  public List<Turn> getTurns() {
-    return turns;
-  }
 
-  public Turn getLastTurn(){
-    return (!turns.isEmpty()) ? turns.get(turns.size()-1):null;
-  }
 }
