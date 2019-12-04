@@ -1,13 +1,19 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGame;
+import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayer;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,6 +40,62 @@ public class Card {
   @Column(nullable = false, updatable = false)
   private Date updated;
 
+  private Location location;
+
+  public enum Location {
+    HAND,
+    DISCARD,
+    DRAW_PILE;
+  }
+
+  @NonNull
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "player_id",nullable = false,updatable = false)
+  @JsonSerialize(as = FlatPlayer.class)
+  private Player player;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  @NonNull
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(@NonNull Date created) {
+    this.created = created;
+  }
+
+  @NonNull
+  public Date getUpdated() {
+    return updated;
+  }
+
+  public void setUpdated(@NonNull Date updated) {
+    this.updated = updated;
+  }
+
+  public Location getLocation() {
+    return location;
+  }
+
+  public void setLocation(Location location) {
+    this.location = location;
+  }
+
+  @NonNull
+  public Player getPlayer() {
+    return player;
+  }
+
+  public void setPlayer(@NonNull Player player) {
+    this.player = player;
+  }
 
   public enum Type {
     COPPER(0, 0, 0, 1, 0, 0) {
@@ -89,6 +151,7 @@ public class Card {
 
     },
 
+    //TODO deal with draw
     CELLAR(2, 0, 0, 0, 0, drawCards) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -116,40 +179,8 @@ public class Card {
         return gameStateInfo;
       }
 
-      public int getCost() {
-        return 0;
-      }
-
-
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-
-      public String toString() {
-        return "Cellar";
-      }
     },
-    MOAT(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    MOAT(2, 0, 0, 0, 0, 2) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
 
@@ -164,43 +195,9 @@ public class Card {
         return gameStateInfo;
       }
 
-
-      public int getCost() {
-        return 2;
-      }
-
-
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-
-      public int getMoneyValue() {
-        return 0;
-      }
-
-
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-
-      public int getDrawCardsWhenPlayed() {
-        return 2;
-      }
-
-      @Override
-      public String toString() {
-        return "Moat";
-      }
     },
 
-    MARKET(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    MARKET(5, 0, 0, 0, 1, 1) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -225,43 +222,9 @@ public class Card {
         return gameStateInfo;
       }
 
-
-      public int getCost() {
-        return 5;
-      }
-
-
-      public int getAddValueIfPlayed() {
-        return 1;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-
-      public int getMoneyValue() {
-        return 0;
-      }
-
-
-      public String toString() {
-        return "Market";
-      }
     },
 
-    MERCHANT(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    MERCHANT(3, 0, 1, 0, 0, 1) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
         DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
@@ -275,42 +238,8 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 3;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 1;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Merchant";
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 1;
-      }
     },
-    MILITIA(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    MILITIA(4, 0, 0, 0, 2, drawCards) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -327,43 +256,9 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 4;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 2;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Militia";
-      }
     },
 
-    MINE(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    MINE(5, 0, 0, 0, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -381,43 +276,9 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 5;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Mine";
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 3;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
     },
 
-    REMODEL(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    REMODEL(4, 0, 0, 0, 0, 0) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
 
@@ -434,43 +295,9 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 0;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Remodel";
-      }
     },
 
-    SMITHY(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    SMITHY(4, 0, 0, 0, 0, 3) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -485,43 +312,9 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 0;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Smithy";
-      }
     },
 
-    VILLAGE(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    VILLAGE(3, 0, 0, 0, 0, 1) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
 
@@ -537,42 +330,8 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 0;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Village";
-      }
     },
-    WORKSHOP(cost, victoryPoints, extraGoldIfSilver, moneyValue, extraGold, drawCards) {
+    WORKSHOP(3, 0, 0, 0, 0, 0) {
       public GameStateInfo play(GameStateInfo gameStateInfo, Optional<List<Card>> additionalCards) {
 
         int actionsRemaining =
@@ -587,40 +346,6 @@ public class Card {
         return gameStateInfo;
       }
 
-      @Override
-      public int getCost() {
-        return 0;
-      }
-
-      @Override
-      public int getVictoryPoints() {
-        return 0;
-      }
-
-      @Override
-      public int getExtraGoldIfSilver() {
-        return 0;
-      }
-
-      @Override
-      public int getMoneyValue() {
-        return 0;
-      }
-
-      @Override
-      public int getAddValueIfPlayed() {
-        return 0;
-      }
-
-      @Override
-      public int getDrawCardsWhenPlayed() {
-        return 0;
-      }
-
-      @Override
-      public String toString() {
-        return "Workshop";
-      }
     };
 
 
@@ -644,30 +369,7 @@ public class Card {
     public abstract GameStateInfo play(GameStateInfo gameStateInfo,
         Optional<List<Card>> additionalCards);
 
-    public int getCost() {
-      return cost;
-    }
 
-
-    public int getVictoryPoints() {
-      return victoryPoints;
-    }
-
-    public int getExtraGoldIfSilver() {
-      return extraGoldIfSilver;
-    }
-
-    public int getMoneyValue() {
-      return moneyValue;
-    }
-
-    public int getExtraGold() {
-      return extraGold;
-    }
-
-    public int getDrawCards() {
-      return drawCards;
-    }
   }
 }
 
