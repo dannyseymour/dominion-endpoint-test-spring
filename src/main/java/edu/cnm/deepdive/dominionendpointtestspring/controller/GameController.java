@@ -69,10 +69,10 @@ public class GameController {
     gamePlayer.setGame(game);
     game.getGamePlayers().add(gamePlayer);
     if (game.getGamePlayers().size()==2) {
-      GamePlayer gamePlayer1 = game.getGamePlayers().get(0);
-      GamePlayer gamePlayer2 = game.getGamePlayers().get(1);
-      game.setCurrentGamePlayer(gamePlayer1);
-      game= gameLogic.initializeGame(game, gamePlayer1, gamePlayer2);
+      Player player1 = game.getGamePlayers().get(0).getPlayer();
+      Player player2 = game.getGamePlayers().get(1).getPlayer();
+
+      game= gameLogic.initializeGame(game, player1, player2);
     }
     else if (game.getGamePlayers().size()==1){
       game.setCurrentState(GameState.WAITING);
@@ -96,12 +96,11 @@ public class GameController {
    Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
-      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
       if (cards == null){
-        game = gameLogic.playCard(cardName, game, gamePlayer);
+        game = gameLogic.playCard(cardName, game, player);
         return gameRepository.save(game);
       }else{
-       game= gameLogic.playCard(cardName,game, gamePlayer, (ArrayList<String>) cards);
+       game= gameLogic.playCard(cardName,game, player, (ArrayList<String>) cards);
         return gameRepository.save(game);
       }
     }
@@ -116,8 +115,7 @@ public class GameController {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
-      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
-        game= gameLogic.buyCard(cardName, game, gamePlayer);
+        game= gameLogic.buyCard(cardName, game, player);
         return gameRepository.save(game);
     }
     else{
@@ -133,8 +131,7 @@ public class GameController {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
-      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
-      game = gameLogic.endPhase(game, gamePlayer);
+      game = gameLogic.endPhase(game, player);
       return gameRepository.save(game);
     }
     else{
@@ -149,8 +146,7 @@ public class GameController {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
-      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
-      game = gameLogic.discardForMilitia(game, gamePlayer, cardNames);
+      game = gameLogic.discardForMilitia(game, player, cardNames);
       return gameRepository.save(game);
     }
     else{
@@ -170,11 +166,6 @@ public class GameController {
   public void notFound() {
   }
 
-  private GamePlayer matchPlayerToGamePlayer(Player player){
-    return gamePlayerRepository.getByPlayer(player);
-  }
 
-  private Player matchGamePlayerToPlayer(GamePlayer gamePlayer, Game game){
-    return playerRepository.getPlayerByGamePlayerAndGameId(gamePlayer, game.getId());
-  }
+
 }

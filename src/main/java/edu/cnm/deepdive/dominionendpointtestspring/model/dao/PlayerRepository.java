@@ -3,6 +3,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.dao;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player.PlayerStateInGame;
 import java.util.Optional;
 import javax.swing.text.html.Option;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,11 +15,10 @@ public interface PlayerRepository extends CrudRepository<Player,Long> {
 
 
 
-  @Override
-  void deleteAll();
-
 
   Optional<Player> findByOauthKey(String uid);
 
-  Player getPlayerByGamePlayerAndGameId(GamePlayer gamePlayer, Long id);
+  Player getByPlayerStateInGame(PlayerStateInGame playerStateInGame);
+
+
 }

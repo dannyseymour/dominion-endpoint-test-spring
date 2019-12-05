@@ -2,6 +2,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayerGamePlayer;
 import java.util.LinkedList;
@@ -49,7 +50,27 @@ public class Player implements FlatPlayer {
   @OrderBy("id")
   @JsonSerialize(contentAs = FlatPlayerGamePlayer.class)
   private List<GamePlayer> gamePlayers = new LinkedList<>();
+  private int actionsRemaining;
 
+  private int buysRemaining;
+
+  private PlayerStateInGame playerStateInGame;
+
+  public int getActionsRemaining() {
+    return actionsRemaining;
+  }
+
+  public void setActionsRemaining(int actionsRemaining) {
+    this.actionsRemaining = actionsRemaining;
+  }
+
+  public int getBuysRemaining() {
+    return buysRemaining;
+  }
+
+  public void setBuysRemaining(int buysRemaining) {
+    this.buysRemaining = buysRemaining;
+  }
   @Override
   public Long getId() {
     return id;
@@ -80,10 +101,23 @@ public class Player implements FlatPlayer {
     this.id = id;
   }
 
+  public PlayerStateInGame getPlayerStateInGame() {
+    return playerStateInGame;
+  }
 
+  public void setPlayerStateInGame(
+      PlayerStateInGame playerStateInGame) {
+    this.playerStateInGame = playerStateInGame;
+  }
 
   public void setGamePlayers(
       List<GamePlayer> gamePlayers) {
     this.gamePlayers = gamePlayers;
   }
+
+  public enum PlayerStateInGame{
+    ACTIVE,
+    PASSIVE;
+  }
+
 }

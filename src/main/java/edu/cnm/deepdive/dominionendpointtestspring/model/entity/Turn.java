@@ -6,6 +6,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGameGamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayer;
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,11 +18,11 @@ import javax.persistence.TemporalType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.lang.NonNull;
-
+@Entity
 public class Turn {
 
   public Turn(@NonNull Game game,
-      @NonNull GamePlayer player) {
+      @NonNull Player player) {
     this.game = game;
     this.player = player;
   }
@@ -51,9 +52,9 @@ public class Turn {
 
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "game_player_id",nullable = false,updatable = false)
+  @JoinColumn(name = "player_id",nullable = false,updatable = false)
   @JsonSerialize(as = FlatGameGamePlayer.class)
-  private GamePlayer player;
+  private Player player;
 
   private int buyingPower;
 
@@ -81,11 +82,11 @@ public class Turn {
   }
 
   @NonNull
-  public GamePlayer getPlayer() {
+  public Player getPlayer() {
     return player;
   }
 
-  public void setPlayer(@NonNull GamePlayer player) {
+  public void setPlayer(@NonNull Player player) {
     this.player = player;
   }
 

@@ -42,27 +42,8 @@ public class GamePlayer implements FlatGameGamePlayer, FlatPlayerGamePlayer {
   private Player player;
 
 
-  private GamePlayerState playerState;
 
-  private int actionsRemaining;
 
-  private int buysRemaining;
-
-  public int getActionsRemaining() {
-    return actionsRemaining;
-  }
-
-  public void setActionsRemaining(int actionsRemaining) {
-    this.actionsRemaining = actionsRemaining;
-  }
-
-  public int getBuysRemaining() {
-    return buysRemaining;
-  }
-
-  public void setBuysRemaining(int buysRemaining) {
-    this.buysRemaining = buysRemaining;
-  }
 
 
 @Override
@@ -93,18 +74,7 @@ public class GamePlayer implements FlatGameGamePlayer, FlatPlayerGamePlayer {
     this.player = player;
   }
 
-  public GamePlayerState getGamePlayerState() {
-    return playerState;
-  }
 
-  public void setGamePlayerState(GamePlayerState playerState) {
-    this.playerState = playerState;
-  }
-
-  public enum GamePlayerState{
-    ACTIVE,
-    PASSIVE;
-  }
 
 
 }

@@ -11,13 +11,12 @@ import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card.Location;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card.Type;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer.GamePlayerState;
+
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Play;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player.PlayerStateInGame;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
-import edu.cnm.deepdive.dominionendpointtestspring.state.GameStateInfo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -68,36 +67,32 @@ public class GameLogic {
   }
 
   public Turn getCurrentTurn(Game game) {
-    return turnRepository.getAllByGameOrderByTurnIdDesc(game).get()
-        .get(turnRepository.getAllByOrderByTurnIdDesc().get().size() - 1);
+    return turnRepository.getAllByGameOrderByIdDesc(game).get()
+        .get(turnRepository.getAllByOrderByIdDesc().get().size() - 1);
   }
 
   public Turn getPreviousTurn(Game game) {
-    return turnRepository.getAllByGameOrderByTurnIdDesc(game).get()
-        .get(turnRepository.getAllByOrderByTurnIdDesc().get().size() - 2);
+    return turnRepository.getAllByGameOrderByIdDesc(game).get()
+        .get(turnRepository.getAllByOrderByIdDesc().get().size() - 2);
   }
 
-  public Game getCurrentGame(List<GamePlayer> players) {
-    return gameRepository.getFirstByGamePlayers(players);
-  }
-
-  public Game playCard(String cardType, Game game, GamePlayer player,
+  public Game playCard(String cardType, Game game, Player player,
       ArrayList<String> cardStrings) {
     Turn turn = getCurrentTurn(game);
     boolean hasSilver = false;
     ArrayList<Card> currentHand = (ArrayList<Card>) cardRepository
-        .getAllByGamePlayerAndLocation(player, Location.HAND).get();
+        .getAllByPlayerAndLocation(player, Location.HAND).get();
     for (Card card: currentHand) {
       if (card.getType().equals(Type.SILVER)) {
         hasSilver = true;
       }
     }
     if (cardRepository
-        .getByLocationAndGamePlayerAndType(Location.HAND, player,
+        .getByLocationAndPlayerAndType(Location.HAND, player,
             Type.valueOf(cardType.toUpperCase()))
         .isPresent()) {
       Card playingCard = cardRepository
-          .getByLocationAndGamePlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
+          .getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
       playCardProcessing(game, turn, player, playingCard, hasSilver, cardStrings);
       playingCard.setLocation(Location.DISCARD);
 
@@ -110,22 +105,22 @@ public class GameLogic {
     }
   }
 
-  public Game playCard(String cardType, Game game, GamePlayer player) {
+  public Game playCard(String cardType, Game game, Player player) {
     Turn turn = getCurrentTurn(game);
     boolean hasSilver = false;
     ArrayList<Card> currentHand = (ArrayList<Card>) cardRepository
-        .getAllByGamePlayerAndLocation(player, Location.HAND).get();
+        .getAllByPlayerAndLocation(player, Location.HAND).get();
     for (Card card: currentHand) {
       if (card.getType().equals(Type.SILVER)) {
         hasSilver = true;
       }
     }
     if (cardRepository
-        .getByLocationAndGamePlayerAndType(Location.HAND, player,
+        .getByLocationAndPlayerAndType(Location.HAND, player,
             Type.valueOf(cardType.toUpperCase()))
         .isPresent()) {
       Card playingCard = cardRepository
-          .getByLocationAndGamePlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
+          .getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
       playCardProcessing(game, turn, player, playingCard, hasSilver);
       playingCard.setLocation(Location.DISCARD);
 
@@ -137,11 +132,9 @@ public class GameLogic {
       return game;
     }
   }
-  public Game buyCard(String cardType, Game game, GamePlayer player) {
+  public Game buyCard(String cardType, Game game, Player player) {
     Turn turn = getCurrentTurn(game);
     int buyingPower = turn.getBuyingPower();
-    ArrayList<Card> currentHand = (ArrayList<Card>) cardRepository
-        .getAllByGamePlayerAndLocation(player, Location.HAND).get();
     Card card = cardRepository.getByType(Type.valueOf(cardType)).get();
     int stackCount = cardRepository.countAllByTypeAndLocation(card.getType(), Location.STACK).get();
     if (stackCount ==0){
@@ -150,6 +143,7 @@ public class GameLogic {
     if (card.getType().getCost()<=buyingPower) {
       card.setLocation(Location.DISCARD);
       buyingPower-=card.getType().getCost();
+      turn.setBuyingPower(buyingPower);
       return game;
     }
     else{
@@ -158,11 +152,9 @@ public class GameLogic {
 
   }
 
-
-
-  public Game endPhase(Game game, GamePlayer gamePlayer) {
-    GamePlayer activePlayer = whoIsActive();
-    GamePlayer inactivePlayer = whoIsPassive();
+  public Game endPhase(Game game, Player player) {
+    Player activePlayer = whoIsActive();
+    Player inactivePlayer = whoIsPassive();
     Turn turn = getCurrentTurn(game);
 
     if (!testForGameEnd(game)) {
@@ -175,8 +167,8 @@ public class GameLogic {
           game.setCurrentState(GameState.BUYING);
           break;
         case BUYING:
-          activePlayer.setGamePlayerState(GamePlayerState.PASSIVE);
-          discard(activePlayer, cardRepository.getAllByGamePlayerAndLocation(activePlayer,Location.HAND).get());
+          activePlayer.setPlayerStateInGame(PlayerStateInGame.PASSIVE);
+          discard(activePlayer, cardRepository.getAllByPlayerAndLocation(activePlayer,Location.HAND).get());
           for (int i = 0; i< 5; i++){
             draw(activePlayer);
           }
@@ -194,36 +186,36 @@ public class GameLogic {
 
   //i= 1 get this turn, i=2 get last turn
   private Turn getSpecificTurnsAgo(int i) {
-    ArrayList<Turn> turns = (ArrayList<Turn>) turnRepository.getAllByOrderByTurnIdDesc().get();
+    ArrayList<Turn> turns = (ArrayList<Turn>) turnRepository.getAllByOrderByIdDesc().get();
     return turns.get(turns.size() - i);
   }
 
 
-  public Game discardForMilitia(Game game, GamePlayer gamePlayer, List<String> cardStrings) {
+  public Game discardForMilitia(Game game, Player player, List<String> cardStrings) {
     ArrayList<Card> cards = new ArrayList<>();
     for (String s: cardStrings){
       cards.add(cardRepository.getByType(Type.valueOf(s)).get());
     }
-    discard(gamePlayer, cards);
-    if (cardRepository.countAllByGamePlayerAndLocation(gamePlayer, Location.HAND).get()<=3){
+    discard(player, cards);
+    if (cardRepository.countAllByPlayerAndLocation(player, Location.HAND).get()<=3){
       game.setCurrentState(GameState.ACTION);
     }
     return game;
   }
 
-  private void discard(GamePlayer gamePlayer, List<Card> cards){
+  private void discard(Player player, List<Card> cards){
     for (Card card: cards){
       card.setLocation(Location.DISCARD);
     }
   }
 
-  public Game initializeGame(Game game, GamePlayer player1, GamePlayer player2) {
+  public Game initializeGame(Game game, Player player1, Player player2) {
     setupStacks(game);
     deal(game, player1);
     deal(game, player2);
-    game.setCurrentGamePlayer(player1);
-    player1.setGamePlayerState(GamePlayerState.ACTIVE);
-    player2.setGamePlayerState(GamePlayerState.PASSIVE);
+  // game.setCurrentGamePlayer(
+    player1.setPlayerStateInGame(PlayerStateInGame.ACTIVE);
+    player2.setPlayerStateInGame(PlayerStateInGame.PASSIVE);
     game = initTurn(game, player1, true);
     return game;
   }
@@ -244,14 +236,14 @@ public class GameLogic {
   }
 
 
-  private void deal(Game game, GamePlayer player) {
+  private void deal(Game game, Player player) {
     LinkedList<Card> initialCardsForPlayer = new LinkedList<>();
     for (Card.Type type : Card.Type.values()) {
       for (int i = 0; i < type.getInitialPlayerCount(); i++) {
         Card card = new Card(type);
         card.setLocation(Location.DRAW_PILE);
         card.setGame(game);
-        card.setGamePlayer(player);
+        card.setPlayer(player);
         initialCardsForPlayer.add(card);
         card.setOrderInLocation(initialCardsForPlayer.indexOf(card));
       }
@@ -264,13 +256,13 @@ public class GameLogic {
   }
 
 
-  private void shuffle(GamePlayer player) {
+  private void shuffle(Player player) {
     List<Card> cardsInDraw = new LinkedList<>();
     List<Card> cardsInDiscard = new LinkedList<>();
     if (cardRepository
-        .getAllByGamePlayerAndLocation(player, Location.DRAW_PILE).isPresent()){
+        .getAllByPlayerAndLocation(player, Location.DRAW_PILE).isPresent()){
       cardsInDraw =cardRepository
-          .getAllByGamePlayerAndLocation(player, Location.DRAW_PILE).get();
+          .getAllByPlayerAndLocation(player, Location.DRAW_PILE).get();
       cardsInDraw.addAll(cardsInDiscard);
       Collections.shuffle(cardsInDraw);
     }else{
@@ -298,7 +290,7 @@ public class GameLogic {
 
   private String playToString(Play play) {
     StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append(play.getGamePlayer().getPlayer().getDisplayName())
+    stringBuilder.append(play.getPlayer().getDisplayName())
         .append(" ")
         .append(play.getType().toString())
         .append(" ")
@@ -306,27 +298,28 @@ public class GameLogic {
     return stringBuilder.toString();
   }
 
-  private void draw(GamePlayer player) {
-    int drawPileCount = cardRepository.countAllByGamePlayerAndLocation(player, Location.DRAW_PILE).get();
+  private void draw(Player player) {
+    int drawPileCount = cardRepository.countAllByPlayerAndLocation(player, Location.DRAW_PILE).get();
     if (drawPileCount ==0){
       shuffle(player);
     }
-    ArrayList<Card> drawPile = cardRepository.getAllByGamePlayerAndLocationOrderByOrderInLocation(player, Location.DRAW_PILE);
+    ArrayList<Card> drawPile = cardRepository.getAllByPlayerAndLocationOrderByOrderInLocation(player, Location.DRAW_PILE);
     Card card = drawPile.get(0);
     card.setLocation(Location.HAND);
     cardRepository.save(card);
   }
 
-  private Game initTurn(Game game, GamePlayer player, boolean isFirstTurn) {
+  private Game initTurn(Game game, Player player, boolean isFirstTurn) {
     Turn turn = new Turn(game, player);
     turnRepository.save(turn);
     turn.setBuyingPower(calculateInitialBuyingPower(game, player));
+    player.setPlayerStateInGame(PlayerStateInGame.ACTIVE);
     player.setActionsRemaining(1);
     player.setBuysRemaining(1);
     Turn previousTurn = getPreviousTurn(game);
     draw(player);
     boolean needsToDiscard = false;
-    List<Card> cardsInHand = cardRepository.getAllByGamePlayerAndLocation(player, Location.HAND)
+    List<Card> cardsInHand = cardRepository.getAllByPlayerAndLocation(player, Location.HAND)
         .get();
     if (!isFirstTurn) {
       List<Play> playsFromOtherPlayer = playRepository.getAllByGameAndTurn(game, previousTurn)
@@ -349,13 +342,14 @@ public class GameLogic {
     } else {
       game.setCurrentState(GameState.ACTION);
     }
-    game.setCurrentGamePlayer(player);
+
+    //game.setCurrentGamePlayer(player);
     return game;
   }
 
-  private int calculateInitialBuyingPower(Game game, GamePlayer player) {
+  private int calculateInitialBuyingPower(Game game, Player player) {
     ArrayList<Card> cardsInHand = (ArrayList<Card>) cardRepository
-        .getAllByGamePlayerAndLocation(player, Location.HAND).get();
+        .getAllByPlayerAndLocation(player, Location.HAND).get();
     int buyingPower = 0;
     boolean hasSilver = false;
     for (Card card : cardsInHand) {
@@ -378,8 +372,8 @@ public class GameLogic {
   }
 
 
-  private int calculateVictoryPoints(GamePlayer player) {
-    ArrayList<Card> allPlayersCards = cardRepository.getAllByGamePlayer(player).get();
+  private int calculateVictoryPoints(Player player) {
+    ArrayList<Card> allPlayersCards = cardRepository.getAllByPlayer(player).get();
     int victoryCounter = 0;
     for (Card card : allPlayersCards) {
       victoryCounter+= card.getType().getVictoryPoints();
@@ -387,7 +381,7 @@ public class GameLogic {
     return victoryCounter;
   }
 
-  private void constructNormalPlay(Game game, Turn turn, GamePlayer player, Card card,
+  private void constructNormalPlay(Game game, Turn turn, Player player, Card card,
       boolean hasSilver) {
     int currentActionsRemaining = player.getActionsRemaining();
     player.setActionsRemaining(currentActionsRemaining - 1 + card.getType().getExtraActions());
@@ -407,7 +401,7 @@ public class GameLogic {
 
   }
 
-  private void playCardProcessing(Game game, Turn turn, GamePlayer player, Card card,
+  private void playCardProcessing(Game game, Turn turn, Player player, Card card,
       boolean hasSilver, List<String> otherCardsStrings) {
     constructNormalPlay(game, turn, player, card, hasSilver);
     ArrayList<Card> otherCards = new ArrayList<>();
@@ -418,7 +412,7 @@ public class GameLogic {
             .get(0);
         if (buyCard.getType().getCost() <= 4) {
           buyCard.setLocation(Location.HAND);
-          buyCard.setGamePlayer(player);
+          buyCard.setPlayer(player);
         }
         break;
       case CELLAR:
@@ -443,7 +437,7 @@ private void trashAndBuy(int more, List<String> otherCardsStrings){
     buyingCard.setLocation(Location.DISCARD);
   }
 }
-  private void playCardProcessing(Game game, Turn turn, GamePlayer player, Card card,
+  private void playCardProcessing(Game game, Turn turn, Player player, Card card,
       boolean hasSilver) {
     constructNormalPlay(game, turn, player, card, hasSilver);
 
@@ -467,22 +461,22 @@ private void trashAndBuy(int more, List<String> otherCardsStrings){
     return false;
   }
 
-  private String whoWins(Game game, GamePlayer player1, GamePlayer player2) {
+  private String whoWins(Game game, Player player1, Player player2) {
     if (calculateVictoryPoints(player1) > calculateVictoryPoints(player2)) {
-      return player1.getPlayer().getDisplayName();
+      return player1.getDisplayName();
     } else if (calculateVictoryPoints(player2) > calculateVictoryPoints(player1)) {
-      return player2.getPlayer().getDisplayName();
+      return player2.getDisplayName();
     } else {
       return "Tie";
     }
   }
 
-  private GamePlayer whoIsActive() {
-    return gamePlayerRepository.getByGamePlayerState(GamePlayerState.ACTIVE);
+  private Player whoIsActive() {
+    return playerRepository.getByPlayerStateInGame(PlayerStateInGame.ACTIVE);
   }
 
-  private GamePlayer whoIsPassive() {
-    return gamePlayerRepository.getByGamePlayerState(GamePlayerState.PASSIVE);
+  private Player whoIsPassive() {
+    return playerRepository.getByPlayerStateInGame(PlayerStateInGame.PASSIVE);
   }
 
 

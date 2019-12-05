@@ -48,9 +48,9 @@ public class Card {
 
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "game_player_id", nullable = false, updatable = false)
+  @JoinColumn(name = "player_id", nullable = false, updatable = false)
   @JsonSerialize(as = FlatPlayer.class)
-  private GamePlayer player;
+  private Player player;
 
   private Type type;
   private int orderInLocation;
@@ -102,11 +102,11 @@ public class Card {
   }
 
   @NonNull
-  public GamePlayer getGamePlayer() {
+  public Player getPlayer() {
     return player;
   }
 
-  public void setGamePlayer(@NonNull GamePlayer player) {
+  public void setPlayer(@NonNull Player player) {
     this.player = player;
   }
 
