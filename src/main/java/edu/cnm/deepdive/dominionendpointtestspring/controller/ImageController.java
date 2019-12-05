@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/pics")
 public class ImageController {
 
+  /**
+   * This returns an image of a given card.
+   * @param cardType
+   * @return
+   * @throws IOException
+   */
   @RequestMapping(value = "/{cardType}", method = RequestMethod.GET,
       produces = MediaType.IMAGE_JPEG_VALUE)
   public ResponseEntity<InputStreamResource> getImage(@PathVariable("cardType") String cardType) throws IOException {

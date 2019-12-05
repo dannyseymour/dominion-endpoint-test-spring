@@ -46,9 +46,9 @@ public class Card {
   @JsonSerialize(as = FlatGame.class)
   private Game game;
 
-  @NonNull
+
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "player_id", nullable = false, updatable = false)
+  @JoinColumn(name = "player_id", nullable = true, updatable = false)
   @JsonSerialize(as = FlatPlayer.class)
   private Player player;
 

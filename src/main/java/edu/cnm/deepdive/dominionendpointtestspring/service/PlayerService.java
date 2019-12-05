@@ -18,6 +18,7 @@ public class PlayerService {
     return repository.findByOauthKey(oauthKey)
         .orElseGet(() -> {
           Player player = new Player(oauthKey);
+
           player.setDisplayName(displayName);
           return repository.save(player);
         });

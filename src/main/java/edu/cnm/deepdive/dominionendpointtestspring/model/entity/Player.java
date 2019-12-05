@@ -36,6 +36,8 @@ public class Player implements FlatPlayer {
     this.oauthKey = oauthKey;
   }
 
+
+
   @Id
   @Column(name = "player_id", updatable = false)
   @GeneratedValue(strategy = GenerationType.AUTO)
