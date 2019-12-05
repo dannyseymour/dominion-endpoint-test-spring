@@ -1,29 +1,28 @@
 package edu.cnm.deepdive.dominionendpointtestspring.service;
 
-import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.GameRepository;
-import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.PlayRepository;
-import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.PlayerRepository;
-import edu.cnm.deepdive.dominionendpointtestspring.model.DAO.TurnRepository;
-import edu.cnm.deepdive.dominionendpointtestspring.model.aggregates.GameStateInfo;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player.PlayerState;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
-import edu.cnm.deepdive.dominionendpointtestspring.model.pojo.Card.CardType;
-import edu.cnm.deepdive.dominionendpointtestspring.state.GameEvents;
-import edu.cnm.deepdive.dominionendpointtestspring.state.GameStates;
 
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.CardRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GamePlayerRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GameRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.PlayRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.PlayerRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.TurnRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card.Location;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card.Type;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
+
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Play;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player.PlayerStateInGame;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.annotation.WithStateMachine;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -34,169 +33,452 @@ import org.springframework.stereotype.Service;
 @WithStateMachine
 public class GameLogic {
 
-  private Game game;
 
-  private StateMachine<GameStates, GameEvents> stateMachine;
+  private final GameRepository gameRepository;
 
+
+  private final TurnRepository turnRepository;
+
+
+  private final PlayRepository playRepository;
+
+
+  private final PlayerRepository playerRepository;
+
+
+  private final CardRepository cardRepository;
+
+  private final GamePlayerRepository gamePlayerRepository;
 
   @Autowired
-  GameRepository gameRepository;
-
-  @Autowired
-  TurnRepository turnRepository;
-
-  @Autowired
-  PlayRepository playRepository;
-
-  @Autowired
-  PlayerRepository playerRepository;
-
-  @Autowired
-  PlayerService playerService;
-
-  public Turn getCurrentTurn(){
-    return turnRepository.getAllByOrderByTurnIdDesc().get(turnRepository.getAllByOrderByTurnIdDesc().size()-1);
+  public GameLogic(
+      GameRepository gameRepository,
+      TurnRepository turnRepository,
+      PlayRepository playRepository,
+      PlayerRepository playerRepository,
+      CardRepository cardRepository,
+      GamePlayerRepository gamePlayerRepository) {
+    this.gameRepository = gameRepository;
+    this.turnRepository = turnRepository;
+    this.playRepository = playRepository;
+    this.playerRepository = playerRepository;
+    this.cardRepository = cardRepository;
+    this.gamePlayerRepository = gamePlayerRepository;
   }
-  public Game getCurrentGame(){
-    return gameRepository.getAllByOrderByIdDesc().get(gameRepository.getAllByOrderByIdDesc().size()-1);
+
+  public Turn getCurrentTurn(Game game) {
+    return turnRepository.getAllByGameOrderByIdDesc(game).get()
+        .get(turnRepository.getAllByOrderByIdDesc().get().size() - 1);
   }
 
+  public Turn getPreviousTurn(Game game) {
+    return turnRepository.getAllByGameOrderByIdDesc(game).get()
+        .get(turnRepository.getAllByOrderByIdDesc().get().size() - 2);
+  }
 
-  public GameStateInfo playCardWithCards(CardType cardType, Player player, ArrayList<Card> cards, GameStateInfo gameStateInfo) {
-
-    Card playingCard = new Card(cardType);
-    playingCard.getCardType().play(gameStateInfo, Optional.ofNullable(cards));
-    if(gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining()==0){
-      endActions(gameStateInfo);
-      gameStateInfo.getCurrentPlayerStateInfo().setPhaseState(GameStates.PLAYER_1_BUYING);
-      signalMachine(GameEvents.PLAYER_1_END_ACTIONS);
+  public Game playCard(String cardType, Game game, Player player,
+      ArrayList<String> cardStrings) {
+    Turn turn = getCurrentTurn(game);
+    boolean hasSilver = false;
+    ArrayList<Card> currentHand = (ArrayList<Card>) cardRepository
+        .getAllByPlayerAndLocation(player, Location.HAND).get();
+    for (Card card: currentHand) {
+      if (card.getType().equals(Type.SILVER)) {
+        hasSilver = true;
+      }
     }
-    //gameStateInfo.saveAll();
-    return gameStateInfo;
+    if (cardRepository
+        .getByLocationAndPlayerAndType(Location.HAND, player,
+            Type.valueOf(cardType.toUpperCase()))
+        .isPresent()) {
+      Card playingCard = cardRepository
+          .getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
+      playCardProcessing(game, turn, player, playingCard, hasSilver, cardStrings);
+      playingCard.setLocation(Location.DISCARD);
+
+      if (player.getActionsRemaining() == 0) {
+        game.setCurrentState(GameState.BUYING);
+      }
+      return game;
+    } else {
+      return game;
+    }
+  }
+
+  public Game playCard(String cardType, Game game, Player player) {
+    Turn turn = getCurrentTurn(game);
+    boolean hasSilver = false;
+    ArrayList<Card> currentHand = (ArrayList<Card>) cardRepository
+        .getAllByPlayerAndLocation(player, Location.HAND).get();
+    for (Card card: currentHand) {
+      if (card.getType().equals(Type.SILVER)) {
+        hasSilver = true;
+      }
+    }
+    if (cardRepository
+        .getByLocationAndPlayerAndType(Location.HAND, player,
+            Type.valueOf(cardType.toUpperCase()))
+        .isPresent()) {
+      Card playingCard = cardRepository
+          .getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
+      playCardProcessing(game, turn, player, playingCard, hasSilver);
+      playingCard.setLocation(Location.DISCARD);
+
+      if (player.getActionsRemaining() == 0) {
+        game.setCurrentState(GameState.BUYING);
+      }
+      return game;
+    } else {
+      return game;
+    }
+  }
+  public Game buyCard(String cardType, Game game, Player player) {
+    Turn turn = getCurrentTurn(game);
+    int buyingPower = turn.getBuyingPower();
+    Card card = cardRepository.getByType(Type.valueOf(cardType)).get();
+    int stackCount = cardRepository.countAllByTypeAndLocation(card.getType(), Location.STACK).get();
+    if (stackCount ==0){
+      return game;
+    }
+    if (card.getType().getCost()<=buyingPower) {
+      card.setLocation(Location.DISCARD);
+      buyingPower-=card.getType().getCost();
+      turn.setBuyingPower(buyingPower);
+      return game;
+    }
+    else{
+      return game;
+    }
+
+  }
+
+  public Game endPhase(Game game, Player player) {
+    Player activePlayer = whoIsActive();
+    Player inactivePlayer = whoIsPassive();
+    Turn turn = getCurrentTurn(game);
+
+    if (!testForGameEnd(game)) {
+
+      switch (game.getCurrentState()) {
+        case DISCARDING:
+          game.setCurrentState(GameState.ACTION);
+          break;
+        case ACTION:
+          game.setCurrentState(GameState.BUYING);
+          break;
+        case BUYING:
+          activePlayer.setPlayerStateInGame(PlayerStateInGame.PASSIVE);
+          discard(activePlayer, cardRepository.getAllByPlayerAndLocation(activePlayer,Location.HAND).get());
+          for (int i = 0; i< 5; i++){
+            draw(activePlayer);
+          }
+
+          initTurn(game, inactivePlayer, false);
+          break;
+      }
+
+    } else {
+      game.setCurrentState(GameState.END_GAME);
+      game.setWhoWins(whoWins(game, activePlayer, inactivePlayer));
+    }
+    return game;
+  }
+
+  //i= 1 get this turn, i=2 get last turn
+  private Turn getSpecificTurnsAgo(int i) {
+    ArrayList<Turn> turns = (ArrayList<Turn>) turnRepository.getAllByOrderByIdDesc().get();
+    return turns.get(turns.size() - i);
   }
 
 
-  void signalMachine(GameEvents event) {
-    Message<GameEvents> message = MessageBuilder
-        .withPayload(event)
-        .setHeader("Event Transition", event.toString())
-        .build();
-    stateMachine.sendEvent(message);
+  public Game discardForMilitia(Game game, Player player, List<String> cardStrings) {
+    ArrayList<Card> cards = new ArrayList<>();
+    for (String s: cardStrings){
+      cards.add(cardRepository.getByType(Type.valueOf(s)).get());
+    }
+    discard(player, cards);
+    if (cardRepository.countAllByPlayerAndLocation(player, Location.HAND).get()<=3){
+      game.setCurrentState(GameState.ACTION);
+    }
+    return game;
+  }
+
+  private void discard(Player player, List<Card> cards){
+    for (Card card: cards){
+      card.setLocation(Location.DISCARD);
+    }
+  }
+
+  public Game initializeGame(Game game, Player player1, Player player2) {
+    setupStacks(game);
+    deal(game, player1);
+    deal(game, player2);
+  // game.setCurrentGamePlayer(
+    player1.setPlayerStateInGame(PlayerStateInGame.ACTIVE);
+    player2.setPlayerStateInGame(PlayerStateInGame.PASSIVE);
+    game = initTurn(game, player1, true);
+    return game;
   }
 
 
 
-  public GameStateInfo buyTarget(CardType cardType, Player player, GameStateInfo gameStateInfo){
+  private void setupStacks(Game game) {
+    LinkedList<Card> initialCards = new LinkedList<>();
+    for (Card.Type type : Card.Type.values()) {
+      for (int i = 0; i < type.getInitialTotalCount(); i++) {
+        Card card = new Card(type);
+        card.setLocation(Location.STACK);
+        card.setGame(game);
+        initialCards.add(card);
+      }
+    }
+    cardRepository.saveAll(initialCards);
+  }
 
-    Card buyCard = new Card(cardType);
-    int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()- buyCard.getCost();
-    if (buyingPower < 0){
-      endTurn(getCurrentGame(), player, gameStateInfo.getOtherPlayerStateInfo().getPlayer());
+
+  private void deal(Game game, Player player) {
+    LinkedList<Card> initialCardsForPlayer = new LinkedList<>();
+    for (Card.Type type : Card.Type.values()) {
+      for (int i = 0; i < type.getInitialPlayerCount(); i++) {
+        Card card = new Card(type);
+        card.setLocation(Location.DRAW_PILE);
+        card.setGame(game);
+        card.setPlayer(player);
+        initialCardsForPlayer.add(card);
+        card.setOrderInLocation(initialCardsForPlayer.indexOf(card));
+      }
+    }
+    shuffle(player);
+    for (int i = 0; i< 5; i++){
+      draw(player);
+    }
+    cardRepository.saveAll(initialCardsForPlayer);
+  }
+
+
+  private void shuffle(Player player) {
+    List<Card> cardsInDraw = new LinkedList<>();
+    List<Card> cardsInDiscard = new LinkedList<>();
+    if (cardRepository
+        .getAllByPlayerAndLocation(player, Location.DRAW_PILE).isPresent()){
+      cardsInDraw =cardRepository
+          .getAllByPlayerAndLocation(player, Location.DRAW_PILE).get();
+      cardsInDraw.addAll(cardsInDiscard);
+      Collections.shuffle(cardsInDraw);
     }else{
-      gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(buyCard);
-      switch(cardType){
-        case PROVINCE:
-        case DUCHY:
-        case ESTATE:
-          testForVictory();
+      Collections.shuffle(cardsInDiscard);
+      cardsInDraw.addAll(cardsInDiscard);
+      cardsInDiscard.clear();
+    }
+    for (Card card: cardsInDraw){
+      card.setLocation(Location.DRAW_PILE);
+    }
+
+    cardRepository.saveAll(cardsInDraw);
+  }
+
+
+  public List<String> getListOfPlaysStrings(Game game) {
+    Turn turn = getPreviousTurn(game);
+    List<Play> plays = playRepository.getAllByTurn(turn).get();
+    List<String> playStrings = new ArrayList<>();
+    for (Play play : plays) {
+      playStrings.add(playToString(play));
+    }
+    return playStrings;
+  }
+
+  private String playToString(Play play) {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append(play.getPlayer().getDisplayName())
+        .append(" ")
+        .append(play.getType().toString())
+        .append(" ")
+        .append(play.getCard().getType().toString());
+    return stringBuilder.toString();
+  }
+
+  private void draw(Player player) {
+    int drawPileCount = cardRepository.countAllByPlayerAndLocation(player, Location.DRAW_PILE).get();
+    if (drawPileCount ==0){
+      shuffle(player);
+    }
+    ArrayList<Card> drawPile = cardRepository.getAllByPlayerAndLocationOrderByOrderInLocation(player, Location.DRAW_PILE);
+    Card card = drawPile.get(0);
+    card.setLocation(Location.HAND);
+    cardRepository.save(card);
+  }
+
+  private Game initTurn(Game game, Player player, boolean isFirstTurn) {
+    Turn turn = new Turn(game, player);
+    turnRepository.save(turn);
+    turn.setBuyingPower(calculateInitialBuyingPower(game, player));
+    player.setPlayerStateInGame(PlayerStateInGame.ACTIVE);
+    player.setActionsRemaining(1);
+    player.setBuysRemaining(1);
+    Turn previousTurn = getPreviousTurn(game);
+    draw(player);
+    boolean needsToDiscard = false;
+    List<Card> cardsInHand = cardRepository.getAllByPlayerAndLocation(player, Location.HAND)
+        .get();
+    if (!isFirstTurn) {
+      List<Play> playsFromOtherPlayer = playRepository.getAllByGameAndTurn(game, previousTurn)
+          .get();
+      for (Play play : playsFromOtherPlayer) {
+        if (play.getCard() != null && play.getCard().getType().equals(Type.MILITIA)) {
+          needsToDiscard = true;
+          for (Card card : cardsInHand) {
+            if (card.getType().equals(Type.MOAT)) {
+              needsToDiscard = false;
+            }
+          }
+        }
+      }
+      if (needsToDiscard) {
+        game.setCurrentState(GameState.DISCARDING);
+      } else {
+        game.setCurrentState(GameState.ACTION);
+      }
+    } else {
+      game.setCurrentState(GameState.ACTION);
+    }
+
+    //game.setCurrentGamePlayer(player);
+    return game;
+  }
+
+  private int calculateInitialBuyingPower(Game game, Player player) {
+    ArrayList<Card> cardsInHand = (ArrayList<Card>) cardRepository
+        .getAllByPlayerAndLocation(player, Location.HAND).get();
+    int buyingPower = 0;
+    boolean hasSilver = false;
+    for (Card card : cardsInHand) {
+      switch (card.getType()) {
+        case COPPER:
+          buyingPower += 1;
+          break;
+        case SILVER:
+          buyingPower += 3;
+          hasSilver = true;
+          break;
+        case GOLD:
+          buyingPower += 5;
           break;
         default:
           break;
       }
-      int buysRemaining = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()-1;
-      if(buysRemaining <=0){
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining);
-       // gameStateInfo.saveAll();
-        endTurn(getCurrentGame(), gameStateInfo.getCurrentPlayer().get(), gameStateInfo.getOtherPlayerStateInfo().getPlayer());
-        return gameStateInfo;
-      }else {
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining);
-
-        return gameStateInfo;
-      }
     }
-    return gameStateInfo;
+    return buyingPower;
   }
-  public boolean testForVictory(){
 
-    //testForVictory(currentGameState);
-    return false;
+
+  private int calculateVictoryPoints(Player player) {
+    ArrayList<Card> allPlayersCards = cardRepository.getAllByPlayer(player).get();
+    int victoryCounter = 0;
+    for (Card card : allPlayersCards) {
+      victoryCounter+= card.getType().getVictoryPoints();
+    }
+    return victoryCounter;
   }
-  public GameStateInfo discard(GameStateInfo gameStateInfo, Card... cards) {
-    ArrayList discardCards = new ArrayList(Arrays.asList(cards.clone()));
-    gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(discardCards);
-    //gameStateInfo.saveAll();
-    return gameStateInfo;
-  }
-  public HashMap<String, Integer> initializeStacks() {
-      HashMap<String, Integer> stack = new HashMap<>();
-      stack.put("Copper", 60);
-      stack.put("Silver", 40);
-      stack.put("Gold", 30);
-      stack.put("Estate", 24);
-      stack.put("Duchy", 12);
-      stack.put("Province", 12);
-      stack.put("Cellar", 10);
-      stack.put("Moat", 10);
-      stack.put("Village", 10);
-      stack.put("Workshop", 10);
-      stack.put("Smithy", 10);
-      stack.put("Remodel", 10);
-      stack.put("Militia", 10);
-      stack.put("Market", 10);
-      stack.put("Mine", 10);
-      stack.put("Merchant", 10);
-      stack.put("Trash", 0);
-      return stack;
+
+  private void constructNormalPlay(Game game, Turn turn, Player player, Card card,
+      boolean hasSilver) {
+    int currentActionsRemaining = player.getActionsRemaining();
+    player.setActionsRemaining(currentActionsRemaining - 1 + card.getType().getExtraActions());
+
+    int currentBuysRemaining = player.getBuysRemaining();
+    player.setBuysRemaining(currentBuysRemaining - 1 + card.getType().getExtraBuys());
+
+    int currentBuyingPower = turn.getBuyingPower();
+    if (hasSilver) {
+      currentBuyingPower += card.getType().getExtraGoldIfSilver();
+    }
+    turn.setBuyingPower(currentBuyingPower + card.getType().getExtraGold());
+
+    for (int i = 0; i < card.getType().getDrawCards(); i++) {
+      draw(player);
     }
 
+  }
 
-  public void initTurn(Player thisPlayer, Player otherPlayer){
-    Turn thisTurn = new Turn(getCurrentGame(), thisPlayer);
-    turnRepository.save(thisTurn);
-    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), thisTurn, thisPlayer, otherPlayer);
-    if(gameStateInfo.getPreviousTurns().get(thisTurn.getTurnId()-1).isDidAttack()){
-      gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.MILITIA_RESPONSE);
-    }else {
-      gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.ACTION);
+  private void playCardProcessing(Game game, Turn turn, Player player, Card card,
+      boolean hasSilver, List<String> otherCardsStrings) {
+    constructNormalPlay(game, turn, player, card, hasSilver);
+    ArrayList<Card> otherCards = new ArrayList<>();
+    switch (card.getType()) {
+      case WORKSHOP:
+        Card buyCard = cardRepository
+            .getAllByTypeAndLocation(Type.valueOf(otherCardsStrings.get(0)), Location.STACK).get()
+            .get(0);
+        if (buyCard.getType().getCost() <= 4) {
+          buyCard.setLocation(Location.HAND);
+          buyCard.setPlayer(player);
+        }
+        break;
+      case CELLAR:
+        for (String s : otherCardsStrings) {
+          draw(player);
+        }
+        break;
+      case MINE:
+        trashAndBuy(3, otherCardsStrings);
+        break;
+      case REMODEL:
+        trashAndBuy(2, otherCardsStrings);
+        break;
+
     }
-    //gameStateInfo.saveAll();
   }
-  public void endDiscarding(GameStateInfo gameStateInfo){
-    gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.ACTION);
-   // gameStateInfo.saveAll();
-  }
-  public void endActions(GameStateInfo gameStateInfo){
-    gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.BUYING);
-    gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower();
-   // gameStateInfo.saveAll();
-  }
-
-  public void endTurn(Game game, Player player, Player otherPlayer){
-    GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(),getCurrentTurn(), player, otherPlayer);
-    gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.WATCHING);
-    if (gameStateInfo.getCurrentPlayer().get().getId() == 1) {
-      signalMachine(GameEvents.PLAYER_1_END_BUYS);
-    }else{
-      signalMachine(GameEvents.PLAYER_2_END_BUYS);
-    }
-    //gameStateInfo.saveAll();
-    //TODO update other player
-  }
-  /**
-  public List updateOtherPlayer(){
-    ArrayList<Turn> allTurns = turnRepository.getAllByOrderByTurnIdDesc();
-    Turn lastTurn = allTurns.get(allTurns.size()-2);
-    return (List) playRepository.getAllByTurn(lastTurn);
-  }
-*/
-  public void endGame(){
-    signalMachine(GameEvents.END_GAME);
-  }
-
-
-  public GameStateInfo militiaDiscard(Card card, Player player, GameStateInfo gameStateInfo) {
-
-    return gameStateInfo;
+private void trashAndBuy(int more, List<String> otherCardsStrings){
+  Card trashCard = cardRepository.getByType(Type.valueOf(otherCardsStrings.get(0))).get();
+  trashCard.setLocation(Location.TRASH);
+  Card buyingCard = cardRepository.getByType(Type.valueOf(otherCardsStrings.get(1))).get();
+  if (buyingCard.getType().getCost()<=more+trashCard.getType().getCost()){
+    buyingCard.setLocation(Location.DISCARD);
   }
 }
+  private void playCardProcessing(Game game, Turn turn, Player player, Card card,
+      boolean hasSilver) {
+    constructNormalPlay(game, turn, player, card, hasSilver);
+
+  }
+
+  private boolean testForGameEnd(Game game) {
+    int emptyStacks = 0;
+    boolean provincesEmpty = false;
+    if (cardRepository.countAllByTypeAndLocation(Type.PROVINCE, Location.STACK).get() == 0) {
+      return true;
+    }
+    for (Type type : Type.values()) {
+      if (cardRepository.countAllByTypeAndLocation(type, Location.STACK).get() == 0 && !type
+          .equals(Type.PROVINCE)) {
+        emptyStacks += 1;
+      }
+    }
+    if (emptyStacks >= 3) {
+      return true;
+    }
+    return false;
+  }
+
+  private String whoWins(Game game, Player player1, Player player2) {
+    if (calculateVictoryPoints(player1) > calculateVictoryPoints(player2)) {
+      return player1.getDisplayName();
+    } else if (calculateVictoryPoints(player2) > calculateVictoryPoints(player1)) {
+      return player2.getDisplayName();
+    } else {
+      return "Tie";
+    }
+  }
+
+  private Player whoIsActive() {
+    return playerRepository.getByPlayerStateInGame(PlayerStateInGame.ACTIVE);
+  }
+
+  private Player whoIsPassive() {
+    return playerRepository.getByPlayerStateInGame(PlayerStateInGame.PASSIVE);
+  }
+
+
+}
+
