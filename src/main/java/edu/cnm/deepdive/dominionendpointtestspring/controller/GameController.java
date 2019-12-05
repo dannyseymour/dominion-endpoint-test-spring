@@ -52,12 +52,17 @@ public class GameController {
     this.playerRepository = playerRepository;
   }
 
-  @PostMapping(value = "newgame",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "newgame",produces = MediaType.APPLICATION_JSON_VALUE)
   public Game joinGame(Authentication authentication) {
     Player player = (Player) authentication.getPrincipal();
-    /**
-     * If this is the first game in the database, create new and set to Waiting
-     */
+    if(!gameRepository.existsById(0L)){
+      Game newGame = new Game();
+      gameRepository.save(newGame);
+      newGame.setCurrentState(GameState.WAITING);
+    }
+    Game newGame = new Game();
+    gameRepository.save(newGame);
+    newGame.setCurrentState(GameState.WAITING);
     Game game = gameRepository.findFirstByCurrentState(GameState.WAITING)
         .filter(
             g -> g.getGamePlayers().stream().noneMatch(gp -> gp.getPlayer().getId()
@@ -80,7 +85,7 @@ public class GameController {
     return gameRepository.save(game);
   }
 
-  @GetMapping(value = "{id}",produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "gamestateinfo/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
   public Game get(@PathVariable long id, Authentication authentication){
     Player player = (Player) authentication.getPrincipal();
     //TODO check player
