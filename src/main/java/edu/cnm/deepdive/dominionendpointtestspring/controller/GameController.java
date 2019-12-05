@@ -11,6 +11,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,12 @@ public class GameController {
     this.playerRepository = playerRepository;
   }
 
+  /**
+   * Starts new game. When a client makes this query, it either creates a new game or joins
+   * an existing one, based on whether there are any games in the database in the Waiting state.
+   * @param authentication
+   * @return
+   */
   @PostMapping(value = "newgame",produces = MediaType.APPLICATION_JSON_VALUE)
   public Game joinGame(Authentication authentication) {
     Player player = (Player) authentication.getPrincipal();
@@ -85,6 +92,12 @@ public class GameController {
     return gameRepository.save(game);
   }
 
+  /**
+   * The client pulls this on a timer automatically to refresh information about the game.
+   * @param id
+   * @param authentication
+   * @return
+   */
   @GetMapping(value = "gamestateinfo/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
   public Game get(@PathVariable long id, Authentication authentication){
     Player player = (Player) authentication.getPrincipal();
@@ -94,10 +107,18 @@ public class GameController {
   }
 
 
-
+  /**
+   * This is a method that the user calls to do an action, with or without cards.
+   * It calls the gameLogic service methods and returns an updated game object.
+   * @param authentication
+   * @param gameId
+   * @param cardName
+   * @param cards
+   * @return
+   */
   @PostMapping(value="/action/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game doAction(Authentication authentication, @PathVariable("gameid") int gameId,
-      @PathVariable("cardname") String cardName, @RequestBody List<String> cards) {
+      @PathVariable("cardname") String cardName, @Nullable  @RequestBody List<String> cards) {
    Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
@@ -114,6 +135,14 @@ public class GameController {
     }
   }
 
+  /**
+   * Similar to the doaction method, players can post the card they want to buy.
+   * GameLogic verifies the validity of this action and returns a game object.
+   * @param authentication
+   * @param gameId
+   * @param cardName
+   * @return
+   */
   @PostMapping(value="/buy/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game buyCard(Authentication authentication, @PathVariable("gameid") int gameId,
       @PathVariable("cardname") String cardName) {
@@ -129,7 +158,15 @@ public class GameController {
 
   }
 
-
+  /**
+   * This is used if the player prematurely ends a phase or turn. The player does not have to
+   * end their turn, it will be done automatically in GameLogic in the doAction and Buy methods if
+   * the actions or buys are exhausted. However, if they wish, the players can call this method and skip.
+   * GameLogic performs a different endPhase depending on the current state of Game.
+   * @param authentication
+   * @param gameId
+   * @return
+   */
   @PostMapping(value="/endphase/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game endPhase(Authentication authentication, @PathVariable("gameid") int gameId) {
 
@@ -144,7 +181,14 @@ public class GameController {
     }
   }
 
-
+  /**
+   * When a player is attacked, they have to discard a few cards before they can proceed.
+   * This method takes in that information in the request body, discards, and returns a game object.
+   * @param authentication
+   * @param gameId
+   * @param cardNames
+   * @return
+   */
   @PostMapping(value="/discard/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game discardCard(Authentication authentication, @PathVariable("gameid") int gameId,
       @RequestBody List<String> cardNames) {
@@ -159,6 +203,12 @@ public class GameController {
     }
   }
 
+  /**
+   * This gets a simple list of strings describing the last turn taken by the other player.
+   * @param authentication
+   * @param gameId
+   * @return
+   */
   @GetMapping("/plays/{gameid}")
   public List<String> getPlaysFromLastTurn(Authentication authentication, @PathVariable("gameid")int gameId){
     Player player = (Player) authentication.getPrincipal();

@@ -66,16 +66,36 @@ public class GameLogic {
     this.gamePlayerRepository = gamePlayerRepository;
   }
 
+  /**
+   * This method gets the current turn. It is a helper method used in several
+   * gameLogic functions.
+   * @param game
+   * @return
+   */
   public Turn getCurrentTurn(Game game) {
     return turnRepository.getAllByGameOrderByIdDesc(game).get()
         .get(turnRepository.getAllByOrderByIdDesc().get().size() - 1);
   }
-
+  /**
+   * This method gets the previous turn. It is a helper method used in several
+   * gameLogic functions.
+   * @param game
+   * @return
+   */
   public Turn getPreviousTurn(Game game) {
     return turnRepository.getAllByGameOrderByIdDesc(game).get()
         .get(turnRepository.getAllByOrderByIdDesc().get().size() - 2);
   }
 
+  /**
+   * This method plays a card. It calls the helper methods to calculate the change in player,
+   * turn, and game state, and returns a Game object to the player.
+   * @param cardType
+   * @param game
+   * @param player
+   * @param cardStrings
+   * @return
+   */
   public Game playCard(String cardType, Game game, Player player,
       ArrayList<String> cardStrings) {
     Turn turn = getCurrentTurn(game);
@@ -105,6 +125,14 @@ public class GameLogic {
     }
   }
 
+  /**
+   * This is an overload of the other playCard method which functions if no additional
+   * cards have been passed in as arguments.
+   * @param cardType
+   * @param game
+   * @param player
+   * @return
+   */
   public Game playCard(String cardType, Game game, Player player) {
     Turn turn = getCurrentTurn(game);
     boolean hasSilver = false;
@@ -132,6 +160,14 @@ public class GameLogic {
       return game;
     }
   }
+
+  /**
+   * This method performs actions to buy a card.
+   * @param cardType
+   * @param game
+   * @param player
+   * @return
+   */
   public Game buyCard(String cardType, Game game, Player player) {
     Turn turn = getCurrentTurn(game);
     int buyingPower = turn.getBuyingPower();
@@ -152,6 +188,12 @@ public class GameLogic {
 
   }
 
+  /**
+   * This method ends the current phase, called from GameController.
+   * @param game
+   * @param player
+   * @return
+   */
   public Game endPhase(Game game, Player player) {
     Player activePlayer = whoIsActive();
     Player inactivePlayer = whoIsPassive();
@@ -184,13 +226,14 @@ public class GameLogic {
     return game;
   }
 
-  //i= 1 get this turn, i=2 get last turn
-  private Turn getSpecificTurnsAgo(int i) {
-    ArrayList<Turn> turns = (ArrayList<Turn>) turnRepository.getAllByOrderByIdDesc().get();
-    return turns.get(turns.size() - i);
-  }
 
-
+  /**
+   * This card performs the discarding functions when a player is attacked.
+   * @param game
+   * @param player
+   * @param cardStrings
+   * @return
+   */
   public Game discardForMilitia(Game game, Player player, List<String> cardStrings) {
     ArrayList<Card> cards = new ArrayList<>();
     for (String s: cardStrings){
@@ -203,12 +246,24 @@ public class GameLogic {
     return game;
   }
 
+  /**
+   * This is a helper method to discard cards from a player's hand.
+   * @param player
+   * @param cards
+   */
   private void discard(Player player, List<Card> cards){
     for (Card card: cards){
       card.setLocation(Location.DISCARD);
     }
   }
 
+  /**
+   * This method sets up the initial conditions for a game.
+   * @param game
+   * @param player1
+   * @param player2
+   * @return
+   */
   public Game initializeGame(Game game, Player player1, Player player2) {
     setupStacks(game);
     deal(game, player1);
@@ -220,7 +275,10 @@ public class GameLogic {
     return game;
   }
 
-
+  /**
+   * This is a helper method that sets up stacks of cards for the game.
+   * @param game
+   */
 
   private void setupStacks(Game game) {
     LinkedList<Card> initialCards = new LinkedList<>();
@@ -235,7 +293,11 @@ public class GameLogic {
     cardRepository.saveAll(initialCards);
   }
 
-
+  /**
+   * This is a helper method that deals cards at the beginning of the game.
+   * @param game
+   * @param player
+   */
   private void deal(Game game, Player player) {
     LinkedList<Card> initialCardsForPlayer = new LinkedList<>();
     for (Card.Type type : Card.Type.values()) {
@@ -255,7 +317,10 @@ public class GameLogic {
     cardRepository.saveAll(initialCardsForPlayer);
   }
 
-
+  /**
+   * This is a helper method to shuffle a stack of cards.
+   * @param player
+   */
   private void shuffle(Player player) {
     List<Card> cardsInDraw = new LinkedList<>();
     List<Card> cardsInDiscard = new LinkedList<>();
@@ -277,7 +342,11 @@ public class GameLogic {
     cardRepository.saveAll(cardsInDraw);
   }
 
-
+  /**
+   * This returns a list of Strings describing the plays from last turn.
+   * @param game
+   * @return
+   */
   public List<String> getListOfPlaysStrings(Game game) {
     Turn turn = getPreviousTurn(game);
     List<Play> plays = playRepository.getAllByTurn(turn).get();
@@ -288,6 +357,11 @@ public class GameLogic {
     return playStrings;
   }
 
+  /**
+   * This is a helper method used to build a description of the play that occurred.
+   * @param play
+   * @return
+   */
   private String playToString(Play play) {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(play.getPlayer().getDisplayName())
@@ -298,6 +372,10 @@ public class GameLogic {
     return stringBuilder.toString();
   }
 
+  /**
+   * This is a helper method to draw one card at a time, called from several other methods.
+   * @param player
+   */
   private void draw(Player player) {
     int drawPileCount = cardRepository.countAllByPlayerAndLocation(player, Location.DRAW_PILE).get();
     if (drawPileCount ==0){
@@ -309,6 +387,13 @@ public class GameLogic {
     cardRepository.save(card);
   }
 
+  /**
+   * This initializes the conditions for a turn, called by the phase state transition manager above.
+   * @param game
+   * @param player
+   * @param isFirstTurn
+   * @return
+   */
   private Game initTurn(Game game, Player player, boolean isFirstTurn) {
     Turn turn = new Turn(game, player);
     turnRepository.save(turn);
@@ -347,6 +432,13 @@ public class GameLogic {
     return game;
   }
 
+  /**
+   * This is a helper method to calculate the buying power at the beginning of
+   * a player's turn.
+   * @param game
+   * @param player
+   * @return
+   */
   private int calculateInitialBuyingPower(Game game, Player player) {
     ArrayList<Card> cardsInHand = (ArrayList<Card>) cardRepository
         .getAllByPlayerAndLocation(player, Location.HAND).get();
@@ -371,7 +463,12 @@ public class GameLogic {
     return buyingPower;
   }
 
-
+  /**
+   * This method counts up all the victory points from each card by type
+   * in the player's location.
+   * @param player
+   * @return
+   */
   private int calculateVictoryPoints(Player player) {
     ArrayList<Card> allPlayersCards = cardRepository.getAllByPlayer(player).get();
     int victoryCounter = 0;
@@ -381,6 +478,15 @@ public class GameLogic {
     return victoryCounter;
   }
 
+  /**
+   * This is a helper method to update the state of the turn, game, and player
+   * given the attributes of a certain card.
+   * @param game
+   * @param turn
+   * @param player
+   * @param card
+   * @param hasSilver
+   */
   private void constructNormalPlay(Game game, Turn turn, Player player, Card card,
       boolean hasSilver) {
     int currentActionsRemaining = player.getActionsRemaining();
@@ -401,6 +507,16 @@ public class GameLogic {
 
   }
 
+  /**
+   * This is a helper method to handle the special situations
+   * that arise when certain cards are played.
+   * @param game
+   * @param turn
+   * @param player
+   * @param card
+   * @param hasSilver
+   * @param otherCardsStrings
+   */
   private void playCardProcessing(Game game, Turn turn, Player player, Card card,
       boolean hasSilver, List<String> otherCardsStrings) {
     constructNormalPlay(game, turn, player, card, hasSilver);
@@ -429,7 +545,14 @@ public class GameLogic {
 
     }
   }
-private void trashAndBuy(int more, List<String> otherCardsStrings){
+
+  /**
+   * This is a helper method to trash and buy a card, called from the
+   * special card circumstances in the processingCard methods.
+   * @param more
+   * @param otherCardsStrings
+   */
+  private void trashAndBuy(int more, List<String> otherCardsStrings){
   Card trashCard = cardRepository.getByType(Type.valueOf(otherCardsStrings.get(0))).get();
   trashCard.setLocation(Location.TRASH);
   Card buyingCard = cardRepository.getByType(Type.valueOf(otherCardsStrings.get(1))).get();
@@ -437,12 +560,26 @@ private void trashAndBuy(int more, List<String> otherCardsStrings){
     buyingCard.setLocation(Location.DISCARD);
   }
 }
+
+  /**
+   * This method may be redundant.
+   * @param game
+   * @param turn
+   * @param player
+   * @param card
+   * @param hasSilver
+   */
   private void playCardProcessing(Game game, Turn turn, Player player, Card card,
       boolean hasSilver) {
     constructNormalPlay(game, turn, player, card, hasSilver);
 
   }
 
+  /**
+   * This method is called at the end of various phases and tests end-game conditions.
+   * @param game
+   * @return
+   */
   private boolean testForGameEnd(Game game) {
     int emptyStacks = 0;
     boolean provincesEmpty = false;
@@ -461,6 +598,14 @@ private void trashAndBuy(int more, List<String> otherCardsStrings){
     return false;
   }
 
+  /**
+   * if testForGameEnd returns true, this method calculates who has more victory
+   * points by querying the cards in their locations.
+   * @param game
+   * @param player1
+   * @param player2
+   * @return
+   */
   private String whoWins(Game game, Player player1, Player player2) {
     if (calculateVictoryPoints(player1) > calculateVictoryPoints(player2)) {
       return player1.getDisplayName();
@@ -471,10 +616,18 @@ private void trashAndBuy(int more, List<String> otherCardsStrings){
     }
   }
 
+  /**
+   * this is a helper method to find who is the current active player.
+   * @return
+   */
   private Player whoIsActive() {
     return playerRepository.getByPlayerStateInGame(PlayerStateInGame.ACTIVE);
   }
 
+  /**
+   * This is a helper method to find who is the current non-active player.
+   * @return
+   */
   private Player whoIsPassive() {
     return playerRepository.getByPlayerStateInGame(PlayerStateInGame.PASSIVE);
   }
