@@ -5,6 +5,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card.Location;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card.Type;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +16,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CardRepository extends CrudRepository<Game, Long> {
 
-  Optional<List<Card>> getAllByPlayerAndLocation(Player player, Location location);
+  Optional<List<Card>> getAllByGamePlayerAndLocation(GamePlayer player, Location location);
 
   Optional<List<Card>> getAllByLocationAndType(Location location, Type type);
 
 
-  Optional<Card> getByLocationAndPlayerAndType(Location location, Player player, Type type);
+  Optional<Card> getByLocationAndGamePlayerAndType(Location location, GamePlayer player, Type type);
 
   Optional<ArrayList<Card>> getAllByPlayer(Player player);
 

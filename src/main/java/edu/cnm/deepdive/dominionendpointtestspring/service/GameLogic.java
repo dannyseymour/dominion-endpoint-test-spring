@@ -18,12 +18,8 @@ import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStateInfo;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.annotation.WithStateMachine;
@@ -76,7 +72,7 @@ public class GameLogic {
     return gameRepository.getFirstByGamePlayers(players);
   }
 
-  public Game playCardWithCards(String cardType, Game game, Player player, ArrayList<String> cardStrings) {
+  public Game playCardWithCards(String cardType, Game game, GamePlayer player, ArrayList<String> cardStrings) {
     Turn turn = getCurrentTurn(game);
     if(cardStrings.size()==0){
       cardStrings = new ArrayList<String>();
@@ -88,8 +84,8 @@ public class GameLogic {
         hasSilver = true;
       }
     }
-    if(cardRepository.getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).isPresent()) {
-      Card playingCard =cardRepository.getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
+    if(cardRepository.getByLocationAndGamePlayerAndType(Location.HAND, player, Type.valueOf(cardType)).isPresent()) {
+      Card playingCard =cardRepository.getByLocationAndGamePlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
           playCardProcessing(game, turn, player, playingCard, hasSilver, cardStrings);
           playingCard.setLocation(Location.DISCARD);
 
@@ -104,7 +100,7 @@ public class GameLogic {
 
 
 
-  public Game buyCard(String cardName, Game game, Player player){
+  public Game buyCard(String cardName, Game game, GamePlayer player){
     Card.Type cardType = Card.Type.valueOf(cardName.toUpperCase());
     Turn turn = getCurrentTurn(game);
 
@@ -139,7 +135,7 @@ public class GameLogic {
     return game;
   }
 
-  public void initTurn(Player player){
+  public void initTurn(GamePlayer player){
     Turn thisTurn = new Turn(getCurrentGame(), player);
     turnRepository.save(thisTurn);
     GameStateInfo gameStateInfo = new GameStateInfo(getCurrentGame(), thisTurn);
@@ -156,7 +152,7 @@ public class GameLogic {
   }
 
 
-  public void endTurn(Game game, Player player){
+  public void endTurn(Game game, GamePlayer player){
    Turn turn = getCurrentTurn();
     GameStateInfo gameStateInfo = new GameStateInfo(game,turn, player, game.getCurrentState());
     game.setCurrentState();
@@ -295,7 +291,7 @@ public class GameLogic {
   }
 
 
-  public Game initializeGame(Game game, Player player1, Player player2) {
+  public Game initializeGame(Game game, GamePlayer player1, GamePlayer player2) {
     setupStacks(game);
     deal(game, player1);
     deal(game, player2);
@@ -318,7 +314,7 @@ public class GameLogic {
     }
 
 
-  private void deal(Game game, Player player){
+  private void deal(Game game, GamePlayer player){
     LinkedList<Card> initialCardsForPlayer = new LinkedList<>();
     for (Card.Type type : Card.Type.values()){
       for (int i = 0; i< type.getInitialPlayerCount(); i++){
@@ -334,8 +330,8 @@ public class GameLogic {
     cardRepository.saveAll(initialCardsForPlayer);
   }
 
-private void shuffleAndDraw(Player player){
-    List<Card> cardsInDraw = cardRepository.getAllByPlayerAndLocation(player, Location.DRAW_PILE).get();
+private void shuffleAndDraw(GamePlayer player){
+    List<Card> cardsInDraw = cardRepository.getAllByGamePlayerAndLocation(player, Location.DRAW_PILE).get();
     List<Card> cardsInHand = new LinkedList<>();
 
     //SHUFFLE
@@ -372,7 +368,7 @@ private void draw(Player player){
     Turn previousTurn = getPreviousTurn(game);
     draw(player);
     boolean needsToDiscard = false;
-    List<Card> cardsInHand = cardRepository.getAllByPlayerAndLocation(player, Location.HAND).get();
+    List<Card> cardsInHand = cardRepository.getAllByGamePlayerAndLocation(player, Location.HAND).get();
     if (!isFirstTurn) {
       List<Play> playsFromOtherPlayer = playRepository.getAllByGameAndTurn(game, previousTurn)
           .get();
@@ -400,7 +396,7 @@ private void draw(Player player){
 
   private int calculateInitialBuyingPower(Game game, Player player) {
     ArrayList<Card> cardsInHand = (ArrayList<Card>) cardRepository
-        .getAllByPlayerAndLocation(player, Location.HAND).get();
+        .getAllByGamePlayerAndLocation(player, Location.HAND).get();
     int buyingPower = 0;
     boolean hasSilver = false;
     for (Card card : cardsInHand) {

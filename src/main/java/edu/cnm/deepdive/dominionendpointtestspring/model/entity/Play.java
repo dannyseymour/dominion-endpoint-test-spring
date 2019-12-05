@@ -21,8 +21,8 @@ public class Play {
 
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name= "player_id", nullable = false, updatable = false)
-  private Player player;
+  @JoinColumn(name= "game_player_id", nullable = false, updatable = false)
+  private GamePlayer player;
 
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
@@ -49,11 +49,11 @@ public class Play {
   }
 
   @NonNull
-  public Player getPlayer() {
+  public GamePlayer getPlayer() {
     return player;
   }
 
-  public void setPlayer(@NonNull Player player) {
+  public void setPlayer(@NonNull GamePlayer player) {
     this.player = player;
   }
 

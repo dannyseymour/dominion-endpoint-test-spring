@@ -65,10 +65,10 @@ public class GameController {
     gamePlayer.setGame(game);
     game.getGamePlayers().add(gamePlayer);
     if (game.getGamePlayers().size()==2) {
-      game.setCurrentPlayer(game.getGamePlayers().get(0));
-      Player player1 = game.getGamePlayers().get(0).getPlayer();
-      Player player2 = game.getGamePlayers().get(1).getPlayer();
-      game= gameLogic.initializeGame(game, player1, player2);
+      GamePlayer gamePlayer1 = game.getGamePlayers().get(0);
+      GamePlayer gamePlayer2 = game.getGamePlayers().get(1);
+      game.setCurrentPlayer(gamePlayer1.getPlayer());
+      game= gameLogic.initializeGame(game, gamePlayer1, gamePlayer2);
     }
     else if (game.getGamePlayers().size()==1){
       game.setCurrentState(GameState.WAITING);
@@ -92,11 +92,12 @@ public class GameController {
    Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
+      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
       if (cards == null){
-        game = gameLogic.playCard(cardName, game, player);
+        game = gameLogic.playCard(cardName, game, gamePlayer);
         return gameRepository.save(game);
       }else{
-       game= gameLogic.playCardWithCards(cardName,game,player, (ArrayList<String>) cards);
+       game= gameLogic.playCardWithCards(cardName,game, gamePlayer, (ArrayList<String>) cards);
         return gameRepository.save(game);
       }
     }
@@ -111,11 +112,12 @@ public class GameController {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
+      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
       if (cards == null) {
-        game= gameLogic.buyCard(cardName, game, player);
+        game= gameLogic.buyCard(cardName, game, gamePlayer);
         return gameRepository.save(game);
       } else {
-        game= gameLogic.buyCardWithCards(cardName, game, player, (ArrayList<String>) cards);
+        game= gameLogic.buyCardWithCards(cardName, game, gamePlayer, (ArrayList<String>) cards);
         return gameRepository.save(game);
       }
     }
@@ -132,7 +134,8 @@ public class GameController {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
-      game = gameLogic.endPhase(game, player);
+      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
+      game = gameLogic.endPhase(game, gamePlayer);
       return gameRepository.save(game);
     }
     else{
@@ -147,7 +150,8 @@ public class GameController {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
-      game = gameLogic.discard(cardName, game, player);
+      GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
+      game = gameLogic.discard(cardName, game, gamePlayer);
       return gameRepository.save(game);
     }
     else{
@@ -158,5 +162,9 @@ public class GameController {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(NoSuchElementException.class)
   public void notFound() {
+  }
+
+  private GamePlayer matchPlayerToGamePlayer(Player player){
+    return gamePlayerRepository.getByPlayer(player);
   }
 }

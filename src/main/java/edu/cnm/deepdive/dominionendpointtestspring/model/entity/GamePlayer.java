@@ -39,6 +39,29 @@ public class GamePlayer implements FlatGameGamePlayer, FlatPlayerGamePlayer {
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn (name= "player_id", nullable = false, updatable = false)
   private Player player;
+
+
+  private int actionsRemaining;
+
+  private int buysRemaining;
+
+  public int getActionsRemaining() {
+    return actionsRemaining;
+  }
+
+  public void setActionsRemaining(int actionsRemaining) {
+    this.actionsRemaining = actionsRemaining;
+  }
+
+  public int getBuysRemaining() {
+    return buysRemaining;
+  }
+
+  public void setBuysRemaining(int buysRemaining) {
+    this.buysRemaining = buysRemaining;
+  }
+
+
 @Override
   public Long getId() {
     return id;

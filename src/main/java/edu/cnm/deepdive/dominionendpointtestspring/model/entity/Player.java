@@ -44,9 +44,6 @@ public class Player implements FlatPlayer {
 
   private String displayName;
 
-  private int actionsRemaining;
-
-  private int buysRemaining;
 
   @OneToMany(mappedBy = "player", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @OrderBy("id")
@@ -83,21 +80,7 @@ public class Player implements FlatPlayer {
     this.id = id;
   }
 
-  public int getActionsRemaining() {
-    return actionsRemaining;
-  }
 
-  public void setActionsRemaining(int actionsRemaining) {
-    this.actionsRemaining = actionsRemaining;
-  }
-
-  public int getBuysRemaining() {
-    return buysRemaining;
-  }
-
-  public void setBuysRemaining(int buysRemaining) {
-    this.buysRemaining = buysRemaining;
-  }
 
   public void setGamePlayers(
       List<GamePlayer> gamePlayers) {

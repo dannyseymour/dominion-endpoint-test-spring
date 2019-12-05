@@ -38,16 +38,20 @@ public class Card {
   @Temporal(TemporalType.TIMESTAMP)
   @Column(nullable = false, updatable = false)
   private Date updated;
+
   private Location location;
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "game_id", updatable = false)
   @JsonSerialize(as = FlatGame.class)
   private Game game;
+
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "player_id",nullable = false,updatable = false)
+  @JoinColumn(name = "game_player_id", nullable = false, updatable = false)
   @JsonSerialize(as = FlatPlayer.class)
-  private Player player;
+  private GamePlayer player;
+
   private Type type;
   private int orderInLocation;
 
@@ -98,11 +102,11 @@ public class Card {
   }
 
   @NonNull
-  public Player getPlayer() {
+  public GamePlayer getPlayer() {
     return player;
   }
 
-  public void setPlayer(@NonNull Player player) {
+  public void setPlayer(@NonNull GamePlayer player) {
     this.player = player;
   }
 

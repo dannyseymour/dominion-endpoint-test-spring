@@ -2,6 +2,7 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGame;
+import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGameGamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayer;
 import java.util.Date;
 import javax.persistence.Column;
@@ -20,7 +21,7 @@ import org.springframework.lang.NonNull;
 public class Turn {
 
   public Turn(@NonNull Game game,
-      @NonNull Player player) {
+      @NonNull GamePlayer player) {
     this.game = game;
     this.player = player;
   }
@@ -50,9 +51,9 @@ public class Turn {
 
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "player_id",nullable = false,updatable = false)
-  @JsonSerialize(as = FlatPlayer.class)
-  private Player player;
+  @JoinColumn(name = "game_player_id",nullable = false,updatable = false)
+  @JsonSerialize(as = FlatGameGamePlayer.class)
+  private GamePlayer player;
 
   private int buyingPower;
 
@@ -80,11 +81,11 @@ public class Turn {
   }
 
   @NonNull
-  public Player getPlayer() {
+  public GamePlayer getPlayer() {
     return player;
   }
 
-  public void setPlayer(@NonNull Player player) {
+  public void setPlayer(@NonNull GamePlayer player) {
     this.player = player;
   }
 
