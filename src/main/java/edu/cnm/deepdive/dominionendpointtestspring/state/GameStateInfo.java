@@ -21,6 +21,14 @@ public class GameStateInfo {
     this.activePlayer = activePlayer;
     this.gameState = gameState;
   }
+  public GameStateInfo(Game game, Turn turn,
+      Player player, GameState gameState) {
+    this.game = game;
+    this.turn = turn;
+    this.requestingPlayer = player;
+    this.activePlayer = player;
+    this.gameState = gameState;
+  }
 
   public Game getGame() {
     return game;

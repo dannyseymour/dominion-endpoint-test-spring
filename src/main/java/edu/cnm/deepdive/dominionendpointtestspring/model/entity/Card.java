@@ -1,6 +1,7 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import edu.cnm.deepdive.dominionendpointtestspring.state.GameStateInfo;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGame;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayer;
 import java.util.Date;
@@ -23,6 +24,10 @@ import org.springframework.lang.NonNull;
 @Entity
 public class Card {
 
+  public Card(Type type) {
+    this.type = type;
+  }
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "card_id")
@@ -42,10 +47,18 @@ public class Card {
 
   private Location location;
 
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "game_id", updatable = false)
+  @JsonSerialize(as = FlatGame.class)
+  private Game game;
+
+
   public enum Location {
     HAND,
     DISCARD,
-    DRAW_PILE;
+    DRAW_PILE,
+    STACK;
   }
 
   @NonNull
@@ -54,12 +67,24 @@ public class Card {
   @JsonSerialize(as = FlatPlayer.class)
   private Player player;
 
+  private Type type;
+
   public Long getId() {
     return id;
   }
 
+  private int orderInLocation;
+
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public int getOrderInLocation() {
+    return orderInLocation;
+  }
+
+  public void setOrderInLocation(int orderInLocation) {
+    this.orderInLocation = orderInLocation;
   }
 
   @NonNull
@@ -97,8 +122,24 @@ public class Card {
     this.player = player;
   }
 
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
+  }
+
+  public Game getGame() {
+    return game;
+  }
+
+  public void setGame(Game game) {
+    this.game = game;
+  }
+
   public enum Type {
-    COPPER(0, 0, 0, 1, 0, 0) {
+    COPPER(60, initialPlayerCount, 0, 0, 0, 1, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -106,7 +147,7 @@ public class Card {
       }
 
     },
-    SILVER(3, 0, 0, 2, 0, 0) {
+    SILVER(initialTotalCount, initialPlayerCount, 3, 0, 0, 2, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -114,16 +155,7 @@ public class Card {
       }
 
     },
-    GOLD(6, 0, 0, 3, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
-
-
-    },
-    ESTATE(2, 1, 0, 0, 0, 0) {
+    GOLD(initialTotalCount, initialPlayerCount, 6, 0, 0, 3, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -132,7 +164,7 @@ public class Card {
 
 
     },
-    DUCHY(5, 3, 0, 0, 0, 0) {
+    ESTATE(initialTotalCount, initialPlayerCount, 2, 1, 0, 0, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -141,7 +173,16 @@ public class Card {
 
 
     },
-    PROVINCE(8, 6, 0, 0, 0, 0) {
+    DUCHY(initialTotalCount, initialPlayerCount, 5, 3, 0, 0, 0, 0) {
+      @Override
+      public GameStateInfo play(GameStateInfo gameStateInfo,
+          Optional<List<Card>> additionalCards) {
+        return gameStateInfo;
+      }
+
+
+    },
+    PROVINCE(initialTotalCount, initialPlayerCount, 8, 6, 0, 0, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -152,9 +193,10 @@ public class Card {
     },
 
     //TODO deal with draw
-    CELLAR(2, 0, 0, 0, 0, drawCards) {
+    CELLAR(initialTotalCount, initialPlayerCount, 2, 0, 0, 0, 0, drawCards) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
+
         Hand currentHand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
         currentHand.discardFromHand(additionalCards.get());
         gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile()
@@ -180,7 +222,7 @@ public class Card {
       }
 
     },
-    MOAT(2, 0, 0, 0, 0, 2) {
+    MOAT(initialTotalCount, initialPlayerCount, 2, 0, 0, 0, 0, 2) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
 
@@ -197,7 +239,7 @@ public class Card {
 
     },
 
-    MARKET(5, 0, 0, 0, 1, 1) {
+    MARKET(initialTotalCount, initialPlayerCount, 5, 0, 0, 0, 1, 1) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -224,7 +266,7 @@ public class Card {
 
     },
 
-    MERCHANT(3, 0, 1, 0, 0, 1) {
+    MERCHANT(initialTotalCount, initialPlayerCount, 3, 0, 1, 0, 0, 1) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
         DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
@@ -239,7 +281,7 @@ public class Card {
       }
 
     },
-    MILITIA(4, 0, 0, 0, 2, drawCards) {
+    MILITIA(initialTotalCount, initialPlayerCount, 4, 0, 0, 0, 2, drawCards) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -258,7 +300,7 @@ public class Card {
 
     },
 
-    MINE(5, 0, 0, 0, 0, 0) {
+    MINE(initialTotalCount, initialPlayerCount, 5, 0, 0, 0, 0, 0) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -278,7 +320,7 @@ public class Card {
 
     },
 
-    REMODEL(4, 0, 0, 0, 0, 0) {
+    REMODEL(initialTotalCount, initialPlayerCount, 4, 0, 0, 0, 0, 0) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
 
@@ -297,7 +339,7 @@ public class Card {
 
     },
 
-    SMITHY(4, 0, 0, 0, 0, 3) {
+    SMITHY(initialTotalCount, initialPlayerCount, 4, 0, 0, 0, 0, 3) {
       @Override
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
@@ -314,7 +356,7 @@ public class Card {
 
     },
 
-    VILLAGE(3, 0, 0, 0, 0, 1) {
+    VILLAGE(initialTotalCount, initialPlayerCount, 3, 0, 0, 0, 0, 1) {
       public GameStateInfo play(GameStateInfo gameStateInfo,
           Optional<List<Card>> additionalCards) {
 
@@ -331,7 +373,7 @@ public class Card {
       }
 
     },
-    WORKSHOP(3, 0, 0, 0, 0, 0) {
+    WORKSHOP(initialTotalCount, initialPlayerCount, 3, 0, 0, 0, 0, 0) {
       public GameStateInfo play(GameStateInfo gameStateInfo, Optional<List<Card>> additionalCards) {
 
         int actionsRemaining =
@@ -349,6 +391,8 @@ public class Card {
     };
 
 
+    private final int initialTotalCount;
+    private final int initialPlayerCount;
     private final int cost;
     private final int victoryPoints;
     private final int extraGoldIfSilver;
@@ -356,14 +400,50 @@ public class Card {
     private final int extraGold;
     private final int drawCards;
 
-    Type(int cost, int victoryPoints, int extraGoldIfSilver, int moneyValue, int extraGold,
+    Type(int initialTotalCount, int initialPlayerCount, int cost, int victoryPoints,
+        int extraGoldIfSilver, int moneyValue,
+        int extraGold,
         int drawCards) {
+      this.initialTotalCount = initialTotalCount;
+      this.initialPlayerCount = initialPlayerCount;
       this.cost = cost;
       this.victoryPoints = victoryPoints;
       this.extraGoldIfSilver = extraGoldIfSilver;
       this.moneyValue = moneyValue;
       this.extraGold = extraGold;
       this.drawCards = drawCards;
+    }
+
+    public int getInitialTotalCount() {
+      return initialTotalCount;
+    }
+
+    public int getInitialPlayerCount() {
+      return initialPlayerCount;
+    }
+
+    public int getCost() {
+      return cost;
+    }
+
+    public int getVictoryPoints() {
+      return victoryPoints;
+    }
+
+    public int getExtraGoldIfSilver() {
+      return extraGoldIfSilver;
+    }
+
+    public int getMoneyValue() {
+      return moneyValue;
+    }
+
+    public int getExtraGold() {
+      return extraGold;
+    }
+
+    public int getDrawCards() {
+      return drawCards;
     }
 
     public abstract GameStateInfo play(GameStateInfo gameStateInfo,

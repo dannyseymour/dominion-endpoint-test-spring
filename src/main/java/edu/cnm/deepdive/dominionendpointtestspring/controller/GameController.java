@@ -2,9 +2,11 @@ package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GamePlayerRepository;
 import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GameRepository;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
+import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,16 +36,20 @@ public class GameController {
 
   private final GamePlayerRepository gamePlayerRepository;
 
+  private final GameLogic gameLogic;
+
   @Autowired
   public GameController(
       GameRepository gameRepository,
-      GamePlayerRepository gamePlayerRepository) {
+      GamePlayerRepository gamePlayerRepository,
+      GameLogic gameLogic) {
 
     this.gameRepository = gameRepository;
     this.gamePlayerRepository = gamePlayerRepository;
+    this.gameLogic = gameLogic;
   }
 
-  @PostMapping(value = "newgame")
+  @PostMapping(value = "newgame",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game joinGame(Authentication authentication) {
     Player player = (Player) authentication.getPrincipal();
     /**
@@ -58,180 +64,95 @@ public class GameController {
     gamePlayer.setPlayer(player);
     gamePlayer.setGame(game);
     game.getGamePlayers().add(gamePlayer);
-    //TODO update state and create turn as necessary
+    if (game.getGamePlayers().size()==2) {
+      game.setCurrentPlayer(game.getGamePlayers().get(0));
+      Player player1 = game.getGamePlayers().get(0).getPlayer();
+      Player player2 = game.getGamePlayers().get(1).getPlayer();
+      game= gameLogic.initializeGame(game, player1, player2);
+    }
+    else if (game.getGamePlayers().size()==1){
+      game.setCurrentState(GameState.WAITING);
+    }
     return gameRepository.save(game);
   }
 
   @GetMapping(value = "{id}",produces = MediaType.APPLICATION_JSON_VALUE)
   public Game get(@PathVariable long id, Authentication authentication){
     Player player = (Player) authentication.getPrincipal();
-    //TODO check authentication
-    return gameRepository.findByIdAndPlayer(id,player.getId()).get();
-  }
-
-  /*@PostMapping(value = "{id}/plays",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-  public Game play(@PathVariable long id,@RequestBody Play play,Authentication authentication){
-    Player player = (Player) authentication.getPrincipal();
-    Game game = get(id,authentication);
-    //TODO use gamelogic service to validate play against game and process play if valid
+    //TODO check player
+    Game game = gameRepository.findByIdAndPlayer(id,player.getId()).get();
     return gameRepository.save(game);
-  }*/
-
-
-
-  @PostMapping("/getmynewgame/{gameid}")
-  public GameStateInfo getMyNewGame(Authentication authentication, @PathVariable("gameid") int gameId) {
-    ArrayList<String> initialCards = new ArrayList<>();
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Estate");
-    LinkedHashMap<String, Integer> stacks = new LinkedHashMap<>();
-    stacks.put("Copper", 60);
-    stacks.put("Silver",40);
-    stacks.put("Gold",30);
-    stacks.put("Estate",8);
-    stacks.put("Duchy",8);
-    stacks.put("Province",8);
-    stacks.put("Cellar",10);
-    stacks.put("Moat",10);
-    stacks.put("Merchant",10);
-    stacks.put("Village",10);
-    stacks.put("Workshop",10);
-    stacks.put("Smithy",10);
-    stacks.put("Remodel",10);
-    stacks.put("Militia", 10);
-    stacks.put("Market",10);
-    stacks.put("Mine",10);
-    stacks.put("Trash",0);
-    return new GameStateInfo(gameId, initialCards, 3, 3, 1, 1,
-        4, false, stacks, null, PhaseState.ACTING, false, true);
   }
 
 
-  @PostMapping("/action/{gameid}/{cardname}")
-  public GameStateInfo doAction(Authentication authentication, @PathVariable("gameid") int gameId,
+
+  @PostMapping("/action/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  public Game doAction(Authentication authentication, @PathVariable("gameid") int gameId,
       @PathVariable("cardname") String cardName, @RequestBody List<String> cards) {
-    ArrayList<String> initialCards = new ArrayList<>();
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Estate");
-    LinkedHashMap<String, Integer> stacks = new LinkedHashMap<>();
-    stacks.put("Copper", 60);
-    stacks.put("Silver",40);
-    stacks.put("Gold",30);
-    stacks.put("Estate",8);
-    stacks.put("Duchy",8);
-    stacks.put("Province",8);
-    stacks.put("Cellar",10);
-    stacks.put("Moat",10);
-    stacks.put("Merchant",10);
-    stacks.put("Village",10);
-    stacks.put("Workshop",10);
-    stacks.put("Smithy",10);
-    stacks.put("Remodel",10);
-    stacks.put("Militia", 10);
-    stacks.put("Market",10);
-    stacks.put("Mine",10);
-    stacks.put("Trash",0);
-    return new GameStateInfo(gameId, initialCards, 3, 0, 1, 1,
-        4, false, stacks, null, PhaseState.BUYING, false, true);
+   Player player = (Player) authentication.getPrincipal();
+    Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
+    if (player.equals(game.getCurrentPlayer())) {
+      if (cards == null){
+        game = gameLogic.playCard(cardName, game, player);
+        return gameRepository.save(game);
+      }else{
+       game= gameLogic.playCardWithCards(cardName,game,player, (ArrayList<String>) cards);
+        return gameRepository.save(game);
+      }
+    }
+    else{
+      return game;
+    }
   }
 
-  @PostMapping("/buy/{gameid}/{cardname}")
-  public GameStateInfo buyCard(Authentication authentication, @PathVariable("gameid") int gameId,
+  @PostMapping("/buy/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  public Game buyCard(Authentication authentication, @PathVariable("gameid") int gameId,
       @PathVariable("cardname") String cardName, @RequestBody List<String>cards) {
-    ArrayList<String> initialCards = new ArrayList<>();
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Estate");
-    LinkedHashMap<String, Integer> stacks = new LinkedHashMap<>();
-    stacks.put("Copper", 60);
-    stacks.put("Silver",40);
-    stacks.put("Gold",30);
-    stacks.put("Estate",8);
-    stacks.put("Duchy",8);
-    stacks.put("Province",8);
-    stacks.put("Cellar",10);
-    stacks.put("Moat",10);
-    stacks.put("Merchant",10);
-    stacks.put("Village",10);
-    stacks.put("Workshop",10);
-    stacks.put("Smithy",10);
-    stacks.put("Remodel",10);
-    stacks.put("Militia", 10);
-    stacks.put("Market",10);
-    stacks.put("Mine",10);
-    stacks.put("Trash",0);
-    return new GameStateInfo(gameId, initialCards, 0, 0, 1, 1,
-        4, false, stacks, null, PhaseState.PASSIVE, false, true);
-  }
+    Player player = (Player) authentication.getPrincipal();
+    Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
+    if (player.equals(game.getCurrentPlayer())) {
+      if (cards == null) {
+        game= gameLogic.buyCard(cardName, game, player);
+        return gameRepository.save(game);
+      } else {
+        game= gameLogic.buyCardWithCards(cardName, game, player, (ArrayList<String>) cards);
+        return gameRepository.save(game);
+      }
+    }
+    else{
+      return game;
+    }
 
-  @PostMapping("/endphase/{gameid}")
-  public GameStateInfo endPhase(Authentication authentication, @PathVariable("gameid") int gameId) {
-    ArrayList<String> initialCards = new ArrayList<>();
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Estate");
-    LinkedHashMap<String, Integer> stacks = new LinkedHashMap<>();
-    stacks.put("Copper", 60);
-    stacks.put("Silver",40);
-    stacks.put("Gold",30);
-    stacks.put("Estate",8);
-    stacks.put("Duchy",8);
-    stacks.put("Province",8);
-    stacks.put("Cellar",10);
-    stacks.put("Moat",10);
-    stacks.put("Merchant",10);
-    stacks.put("Village",10);
-    stacks.put("Workshop",10);
-    stacks.put("Smithy",10);
-    stacks.put("Remodel",10);
-    stacks.put("Militia", 10);
-    stacks.put("Market",10);
-    stacks.put("Mine",10);
-    stacks.put("Trash",0);
-    return new GameStateInfo(gameId, initialCards, 0, 0, 1, 1,
-        4, false, stacks, null, PhaseState.PASSIVE, false, true);
   }
 
 
-  @PostMapping("/discard/{gameid}/{cardname}")
-  public GameStateInfo discardCard(Authentication authentication, @PathVariable("gameid") int gameId,
+  @PostMapping("/endphase/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  public Game endPhase(Authentication authentication, @PathVariable("gameid") int gameId) {
+
+    Player player = (Player) authentication.getPrincipal();
+    Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
+    if (player.equals(game.getCurrentPlayer())) {
+      game = gameLogic.endPhase(game, player);
+      return gameRepository.save(game);
+    }
+    else{
+      return game;
+    }
+  }
+
+
+  @PostMapping("/discard/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  public Game discardCard(Authentication authentication, @PathVariable("gameid") int gameId,
       @PathVariable("cardname") String cardName) {
-    ArrayList<String> initialCards = new ArrayList<>();
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Copper");
-    initialCards.add("Estate");
-    LinkedHashMap<String, Integer> stacks = new LinkedHashMap<>();
-    stacks.put("Copper", 60);
-    stacks.put("Silver",40);
-    stacks.put("Gold",30);
-    stacks.put("Estate",8);
-    stacks.put("Duchy",8);
-    stacks.put("Province",8);
-    stacks.put("Cellar",10);
-    stacks.put("Moat",10);
-    stacks.put("Merchant",10);
-    stacks.put("Village",10);
-    stacks.put("Workshop",10);
-    stacks.put("Smithy",10);
-    stacks.put("Remodel",10);
-    stacks.put("Militia", 10);
-    stacks.put("Market",10);
-    stacks.put("Mine",10);
-    stacks.put("Trash",0);
-    return new GameStateInfo(gameId, initialCards, 0, 0, 1, 1,
-        4, false, stacks, null, PhaseState.ACTING, false, true);
+    Player player = (Player) authentication.getPrincipal();
+    Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
+    if (player.equals(game.getCurrentPlayer())) {
+      game = gameLogic.discard(cardName, game, player);
+      return gameRepository.save(game);
+    }
+    else{
+      return game;
+    }
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

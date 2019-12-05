@@ -19,6 +19,12 @@ import org.springframework.lang.NonNull;
 
 public class Turn {
 
+  public Turn(@NonNull Game game,
+      @NonNull Player player) {
+    this.game = game;
+    this.player = player;
+  }
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "turn_id")
@@ -47,6 +53,8 @@ public class Turn {
   @JoinColumn(name = "player_id",nullable = false,updatable = false)
   @JsonSerialize(as = FlatPlayer.class)
   private Player player;
+
+  private int buyingPower;
 
   public Long getId() {
     return id;
@@ -78,5 +86,25 @@ public class Turn {
 
   public void setPlayer(@NonNull Player player) {
     this.player = player;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public void setCreated(@NonNull Date created) {
+    this.created = created;
+  }
+
+  public void setUpdated(@NonNull Date updated) {
+    this.updated = updated;
+  }
+
+  public int getBuyingPower() {
+    return buyingPower;
+  }
+
+  public void setBuyingPower(int buyingPower) {
+    this.buyingPower = buyingPower;
   }
 }

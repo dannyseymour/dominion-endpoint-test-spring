@@ -81,6 +81,8 @@ public class Game implements FlatGame {
   @JsonIgnore
   private List<Turn> turns  = new LinkedList<>();
 
+  private boolean lastPlayAccepted;
+
   @Override
   public Long getId() {
     return id;
@@ -125,5 +127,34 @@ public class Game implements FlatGame {
 
   public Turn getLastTurn(){
     return (!turns.isEmpty()) ? turns.get(turns.size()-1):null;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public void setCreated(@NonNull Date created) {
+    this.created = created;
+  }
+
+  public void setUpdated(@NonNull Date updated) {
+    this.updated = updated;
+  }
+
+  public void setGamePlayers(
+      List<GamePlayer> gamePlayers) {
+    this.gamePlayers = gamePlayers;
+  }
+
+  public void setTurns(List<Turn> turns) {
+    this.turns = turns;
+  }
+
+  public boolean isLastPlayAccepted() {
+    return lastPlayAccepted;
+  }
+
+  public void setLastPlayAccepted(boolean lastPlayAccepted) {
+    this.lastPlayAccepted = lastPlayAccepted;
   }
 }

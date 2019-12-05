@@ -3,9 +3,12 @@ package edu.cnm.deepdive.dominionendpointtestspring.model.dao;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import java.util.ArrayList;
 
+import java.util.List;
 import java.util.Optional;
 import javax.swing.text.html.Option;
 import org.springframework.data.jpa.repository.Query;
@@ -28,5 +31,7 @@ public interface GameRepository extends CrudRepository<Game, Long> {
   Optional<Game> findByIdAndPlayer(long gameId, long playerId);
 
 
+  Game save(Game game);
 
+  Game getFirstByGamePlayers(List<GamePlayer> gamePlayers);
 }
