@@ -24,56 +24,40 @@ import org.springframework.lang.NonNull;
 @Entity
 public class Card {
 
-  public Card(Type type) {
-    this.type = type;
-  }
-
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "card_id")
   private Long id;
-
   @NonNull
   @CreationTimestamp
   @Temporal(TemporalType.TIMESTAMP)
   @Column(nullable = false, updatable = false)
   private Date created;
-
   @NonNull
   @UpdateTimestamp
   @Temporal(TemporalType.TIMESTAMP)
   @Column(nullable = false, updatable = false)
   private Date updated;
-
   private Location location;
-
-
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "game_id", updatable = false)
   @JsonSerialize(as = FlatGame.class)
   private Game game;
-
-
-  public enum Location {
-    HAND,
-    DISCARD,
-    DRAW_PILE,
-    STACK;
-  }
-
   @NonNull
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "player_id",nullable = false,updatable = false)
   @JsonSerialize(as = FlatPlayer.class)
   private Player player;
-
   private Type type;
+  private int orderInLocation;
+
+  public Card(Type type) {
+    this.type = type;
+  }
 
   public Long getId() {
     return id;
   }
-
-  private int orderInLocation;
 
   public void setId(Long id) {
     this.id = id;
@@ -138,257 +122,63 @@ public class Card {
     this.game = game;
   }
 
+  public enum Location {
+    HAND,
+    DISCARD,
+    DRAW_PILE,
+    STACK;
+  }
+
   public enum Type {
-    COPPER(60, initialPlayerCount, 0, 0, 0, 1, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
+    COPPER(60, 7, 0, 0,
+        0, 1, 0, 0, 0, 0),
 
-    },
-    SILVER(initialTotalCount, initialPlayerCount, 3, 0, 0, 2, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
+    SILVER(30, 0, 3, 0,
+        0, 2, 0, 0, 0, 0),
 
-    },
-    GOLD(initialTotalCount, initialPlayerCount, 6, 0, 0, 3, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
+    GOLD(20, 0, 6, 0,
+        0, 3, 0, 0, 0, 0),
 
+    ESTATE(8, 3, 2, 1,
+        0, 0, 0, 0, 0, 0),
 
-    },
-    ESTATE(initialTotalCount, initialPlayerCount, 2, 1, 0, 0, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
+    DUCHY(8, 0, 5, 3,
+        0, 0, 0, 0, 0, 0),
+
+    PROVINCE(8, 0, 8, 6,
+        0, 0, 0, 0, 0, 0),
+
+    CELLAR(10, 0, 2, 0,
+        0, 0, 0, 0, 1, 0),
+
+    MOAT(10, 0, 2, 0,
+        0, 0, 0, 2, 0, 0),
+
+    MARKET(10, 0, 5, 0,
+        0, 0, 1, 1, 1, 1),
 
 
-    },
-    DUCHY(initialTotalCount, initialPlayerCount, 5, 3, 0, 0, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
+    MERCHANT(10, 0, 3, 0,
+        1, 0, 0, 1, 1, 0),
+
+    MILITIA(10, 0, 4, 0,
+        0, 0, 2, 0, 0, 0),
 
 
-    },
-    PROVINCE(initialTotalCount, initialPlayerCount, 8, 6, 0, 0, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        return gameStateInfo;
-      }
+    MINE(10, 0, 5, 0,
+        0, 0, 0, 0, 0, 0),
 
+    REMODEL(10, 0, 4, 0, 0,
+        0, 0, 0, 0, 0),
 
-    },
+    SMITHY(10, 0, 4, 0,
+        0, 0, 0, 3, 0, 0),
 
-    //TODO deal with draw
-    CELLAR(initialTotalCount, initialPlayerCount, 2, 0, 0, 0, 0, drawCards) {
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
+    VILLAGE(10, 0, 3, 0,
+        0, 0, 0, 1, 2, 0),
 
-        Hand currentHand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        currentHand.discardFromHand(additionalCards.get());
-        gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile()
-            .addToDiscard(additionalCards.get());
-        gameStateInfo.getCurrentPlayerStateInfo().setHand(currentHand);
-        //discard any number of cards from hand, redraw that many cards
-        // need to select which cards to be deleted
-        int numDiscarded = additionalCards.get().size();
-        //for (int i = 0; i < numDiscarded; i++) {
-        // gameStateInfo.getCurrentPlayerStateInfo(.additionalCards.get(i));
-        //}
-        for (int i = 0; i < numDiscarded; i++) {
-          DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
-          Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-          hand.draw(drawPile, gameStateInfo, 1);
-        }
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn()
-            .setActionsRemaining(actionsRemaining + 1);
-
-        return gameStateInfo;
-      }
-
-    },
-    MOAT(initialTotalCount, initialPlayerCount, 2, 0, 0, 0, 0, 2) {
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-
-        DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
-        Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        hand.draw(drawPile, gameStateInfo, 2);
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
-
-        return gameStateInfo;
-      }
-
-    },
-
-    MARKET(initialTotalCount, initialPlayerCount, 5, 0, 0, 0, 1, 1) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-
-        DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
-        Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        hand.draw(drawPile, gameStateInfo, 1);
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn()
-            .setActionsRemaining(actionsRemaining + 1);
-
-        //  playerInfo.addBuy();
-        int buysRemaining = gameStateInfo.getCurrentPlayerStateInfo().getTurn().getBuysRemaining();
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuysRemaining(buysRemaining + 1);
-
-        //  playerInfo.addBuyingPower();\
-        int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().getTurn().getBuyingPower();
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuyingPower(buyingPower + 1);
-
-        return gameStateInfo;
-      }
-
-    },
-
-    MERCHANT(initialTotalCount, initialPlayerCount, 3, 0, 1, 0, 0, 1) {
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
-        Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        hand.draw(drawPile, gameStateInfo, 1);
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn()
-            .setActionsRemaining(actionsRemaining + 1);
-        return gameStateInfo;
-      }
-
-    },
-    MILITIA(initialTotalCount, initialPlayerCount, 4, 0, 0, 0, 2, drawCards) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
-
-        int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().getTurn().getBuyingPower();
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setBuyingPower(buyingPower + 2);
-        if (!(gameStateInfo.getOtherPlayerStateInfo().getPlayer().isHasMoat())) {
-          gameStateInfo.getCurrentPlayerStateInfo().getTurn().setDidAttack(true);
-        }
-        return gameStateInfo;
-      }
-
-    },
-
-    MINE(initialTotalCount, initialPlayerCount, 5, 0, 0, 0, 0, 0) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-
-        gameStateInfo.getCurrentPlayerStateInfo().getHand().trashCard(additionalCards.get().get(0));
-        gameStateInfo.getCurrentPlayerStateInfo().getHand().getCardsInHand()
-            .add(additionalCards.get().get(1));
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
-
-        //TODO Gain a Treasure to your hand costing up to 3 more than it
-
-        return gameStateInfo;
-      }
-
-    },
-
-    REMODEL(initialTotalCount, initialPlayerCount, 4, 0, 0, 0, 0, 0) {
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-
-        int upToCost = additionalCards.get().get(0).getCost() + 2;
-        gameStateInfo.getCurrentPlayerStateInfo().getHand().trashCard(additionalCards.get().get(0));
-        if (additionalCards.get().get(1).getCost() <= upToCost) {
-          gameStateInfo.getCurrentPlayerStateInfo().getHand().getCardsInHand()
-              .add(additionalCards.get().get(1));
-        }
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
-
-        return gameStateInfo;
-      }
-
-    },
-
-    SMITHY(initialTotalCount, initialPlayerCount, 4, 0, 0, 0, 0, 3) {
-      @Override
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-        DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
-        Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        hand.draw(drawPile, gameStateInfo, 3); // How many cards????
-        gameStateInfo.getCurrentPlayerStateInfo().setHand(hand);
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
-        return gameStateInfo;
-      }
-
-    },
-
-    VILLAGE(initialTotalCount, initialPlayerCount, 3, 0, 0, 0, 0, 1) {
-      public GameStateInfo play(GameStateInfo gameStateInfo,
-          Optional<List<Card>> additionalCards) {
-
-        DrawPile drawPile = gameStateInfo.getCurrentPlayerStateInfo().getDrawPile();
-        Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        hand.draw(drawPile, gameStateInfo, 1);
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn()
-            .setActionsRemaining(actionsRemaining + 2);
-
-        return gameStateInfo;
-      }
-
-    },
-    WORKSHOP(initialTotalCount, initialPlayerCount, 3, 0, 0, 0, 0, 0) {
-      public GameStateInfo play(GameStateInfo gameStateInfo, Optional<List<Card>> additionalCards) {
-
-        int actionsRemaining =
-            gameStateInfo.getCurrentPlayerStateInfo().getTurn().getActionsRemaining() - 1;
-        gameStateInfo.getCurrentPlayerStateInfo().getTurn().setActionsRemaining(actionsRemaining);
-        Hand hand = gameStateInfo.getCurrentPlayerStateInfo().getHand();
-        if (additionalCards.get().get(0).getCardType().getCost() <= 4) {
-          hand.getCardsInHand().add(additionalCards.get().get(0));
-        }
-        //else return error
-
-        return gameStateInfo;
-      }
-
-    };
+    WORKSHOP(10, 0, 3, 0,
+        0, 0, 0, 0, 0, 0);
 
 
     private final int initialTotalCount;
@@ -399,11 +189,13 @@ public class Card {
     private final int moneyValue;
     private final int extraGold;
     private final int drawCards;
+    private final int extraActions;
+    private final int extraBuys;
 
     Type(int initialTotalCount, int initialPlayerCount, int cost, int victoryPoints,
         int extraGoldIfSilver, int moneyValue,
         int extraGold,
-        int drawCards) {
+        int drawCards, int extraActions, int extraBuys) {
       this.initialTotalCount = initialTotalCount;
       this.initialPlayerCount = initialPlayerCount;
       this.cost = cost;
@@ -412,6 +204,9 @@ public class Card {
       this.moneyValue = moneyValue;
       this.extraGold = extraGold;
       this.drawCards = drawCards;
+      this.extraActions = extraActions;
+
+      this.extraBuys = extraBuys;
     }
 
     public int getInitialTotalCount() {
@@ -434,6 +229,14 @@ public class Card {
       return extraGoldIfSilver;
     }
 
+    public int getExtraActions() {
+      return extraActions;
+    }
+
+    public int getExtraBuys() {
+      return extraBuys;
+    }
+
     public int getMoneyValue() {
       return moneyValue;
     }
@@ -446,11 +249,5 @@ public class Card {
       return drawCards;
     }
 
-    public abstract GameStateInfo play(GameStateInfo gameStateInfo,
-       List<String> additionalCards);
-
-
   }
-}
-
 }

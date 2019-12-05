@@ -27,4 +27,10 @@ public interface CardRepository extends CrudRepository<Game, Long> {
   void save(Card card);
 
   void saveAll(List<Card> cards);
+
+  Optional<Card> getByType(Type valueOf);
+
+  Optional<List<Card>> getAllByTypeAndLocation(Type type, Location stack);
+
+  Optional<Integer> countAllByTypeAndLocation(Type type, Location location);
 }

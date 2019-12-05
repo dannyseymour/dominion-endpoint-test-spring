@@ -82,30 +82,24 @@ public class GameLogic {
       cardStrings = new ArrayList<String>();
     }
     GameStateInfo gameStateInfo = new GameStateInfo(game, turn, player, game.getCurrentState());
-
+    boolean hasSilver = false;
+    for (String s: cardStrings){
+      if (s.equals("Silver")){
+        hasSilver = true;
+      }
+    }
     if(cardRepository.getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).isPresent()) {
       Card playingCard =cardRepository.getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
-          playingCard.getType().play(gameStateInfo, cardStrings);
+          playCardProcessing(game, turn, player, playingCard, hasSilver, cardStrings);
           playingCard.setLocation(Location.DISCARD);
 
       if(player.getActionsRemaining()==0){
-        calculateBuyingPowerAfterActions(player, turn);
         game.setCurrentState(GameState.BUYING);
       }
       return game;
     }else{
       return game;
     }
-  }
-
-  private void calculateBuyingPowerAfterActions(Player player, Turn turn) {
-    ArrayList<Play> actionPlays = (ArrayList<Play>) playRepository.getAllByTurnAndType(turn).get();
-    int buyingPower = turn.getBuyingPower();
-
-    for (Play play: actionPlays) {
-      buyingPower+= play.getCard().getType().getExtraGold();
-    }
-    turn.setBuyingPower(buyingPower);
   }
 
 
@@ -144,54 +138,6 @@ public class GameLogic {
     initTurn(game game, )
     return game;
   }
-  public boolean testForVictory(){
-
-    //testForVictory(currentGameState);
-    return false;
-  }
-  /
-   private void testForVictory(GameStateInfo gameStateInfo) {
-   List<Stack> currentStacks = gameStateInfo.getStacks();
-   if (currentStacks.get(5).getStackCount()==0){
-   endGame();
-   }
-   int zeroCounter = 0;
-   for (Stack currentStack : currentStacks) {
-   if (currentStack.getStackCount() == 0) {
-   zeroCounter++;
-   }
-   }
-   if (zeroCounter >=3){
-   endGame();
-   }
-   }
-  public GameStateInfo discard(GameStateInfo gameStateInfo, Card... cards) {
-    ArrayList discardCards = new ArrayList(Arrays.asList(cards.clone()));
-    gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(discardCards);
-    //gameStateInfo.saveAll();
-    return gameStateInfo;
-  }
-  public HashMap<String, Integer> initializeStacks(HashMap<String, Integer> stack) {
-    stack.put("Bronze", 10);
-    stack.put("Silver", 8);
-    stack.put("Gold", 7);
-    stack.put("Estate", 10);
-    stack.put("Duchy", 12);
-    stack.put("Province", 15);
-    stack.put("Cellar", 9);
-    stack.put("Moat", 10);
-    stack.put("Village", 5);
-    stack.put("Workshop", 3);
-    stack.put("Smithy", 2);
-    stack.put("Remodel", 15);
-    stack.put("Militia", 9);
-    stack.put("Market", 8);
-    stack.put("Mine", 2);
-    stack.put("Merchant", 3);
-    stack.put("Trash", 0);
-    return stack;
-  }
-
 
   public void initTurn(Player player){
     Turn thisTurn = new Turn(getCurrentGame(), player);
@@ -230,69 +176,8 @@ public class GameLogic {
    return (List) playRepository.getAllByTurn(lastTurn);
    }
 
-  public void endGame(){
-    signalMachine(GameEvents.END_GAME);
-  }
 
-  public GameStateInfoTransferObject startNewGame(@PathVariable("uid") String uid)
-      throws FirebaseMessagingException {
-    if (gameRepository.getAllByOrderByIdDesc().size()==0){
-      Game newGame = new Game(uid);
-      newGame.setCurrentState(GameStates.INITIAL);
-      gameRepository.save(newGame);
-      int gameID = newGame.getId();
-      // firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
-      return newGameSolo(GameStates.INITIAL, gameID);
-    }
-    ArrayList<Game> games = gameRepository.getAllByOrderByIdDesc();
-
-    for (Game game : games){
-      if (game.getCurrentState().equals(GameStates.INITIAL)){
-        game.join(uid);
-        Player playerTwo = playerRepository.getPlayerByUid(uid);
-        playerTwo.setGameOrder(2);
-        Player playerOne = playerRepository.getPlayerByUid(game.getPlayer1UID());
-        playerOne.setGameOrder(1);
-        ArrayList<Player> players = new ArrayList<>();
-        players.add(playerOne);
-        players.add(playerTwo);
-        game.setPlayers(players);
-        // firebaseMessagingSnippets.sendToTokenGameStart(playerTwo.getPlayerFCMRegistrationToken(),
-        //     game.getId(),playerOne.getUserName(), 2);
-        // firebaseMessagingSnippets.sendToTokenGameStart(playerOne.getPlayerFCMRegistrationToken(),
-        //     game.getId(), playerTwo.getUserName(), 1);
-        //TODO fix
-        return null;
-      }else{
-        Game newGame = new Game(uid);
-        gameRepository.save(newGame);
-        int gameID = newGame.getId();
-        //  firebaseMessagingSnippets.sendToToken("Game Has Begun. Waiting for Other Player.");
-        return newGameSolo(GameStates.INITIAL, gameID);
-      }
-    }
-    return null;
-  }
-
-  public GameStateInfoTransferObject newGameSolo(GameStates gameStates, int gameId) {
-    return new GameStateInfoTransferObject(gameStates, gameId);
-
-  }
-
-  public GameStateInfoTransferObject getInitialConditions(@PathVariable("gameid") int gameId,
-      @PathVariable("uid") String uid){
-    Game game = gameRepository.getGameById(gameId);
-    Player player = playerRepository.getPlayerByUid(uid);
-    Turn firstTurn = new Turn(game, playerRepository.getPlayerByUid(game.getPlayer1UID()));
-    stateMachine.sendEvent(GameEvents.START_GAME);
-    game.setStack(gameLogic.initializeStacks());
-    GameStateInfo gameState = new GameStateInfo(game, firstTurn, playerRepository.getPlayerByUid(game.getPlayer1UID())
-        ,playerRepository.getPlayerByUid(game.getPlayer2UID()));
-    return buildTransferObjectWithWrapper(gameState, true, "Game Created!");
-  }
-
-
-  public GameStateInfoTransferObject endPhase(@PathVariable("uid") String uid, @PathVariable("gameid") int gameId) {
+  public Game endPhase(@PathVariable("uid") String uid, @PathVariable("gameid") int gameId) {
     Game thisGame = gameRepository.getGameById(gameId);
     Player player1 = thisGame.getPlayers().get(0);
     Player player2 = thisGame.getPlayers().get(1);
@@ -370,76 +255,16 @@ public class GameLogic {
     }
     GameStateInfo gameState = new GameStateInfo(thisGame,
         turn, player1,player2);
-    return buildTransferObjectWithWrapper(gameState, wasSuccessful, message);
+
 
   }
   //i= 1 get this turn, i=2 get last turn
   private Turn getSpecificTurnsAgo(int i) {
-    ArrayList<Turn> turns = turnRepository.getAllByOrderByTurnIdDesc();
+    ArrayList<Turn> turns = (ArrayList<Turn>) turnRepository.getAllByOrderByTurnIdDesc().get();
     return turns.get(turns.size() - i);
   }
 
 
-  @PostMapping("/{gameid}/{playeruid}{cardname}/buy")
-  public GameStateInfoTransferObject playerBuysTarget(@PathVariable ("gameid") int gameId,
-      @PathVariable("playeruid") String uid,
-      @PathVariable ("cardname") String cardName) {
-    Game thisGame = gameRepository.getGameById(gameId);
-    Player thisPlayer = playerRepository.getPlayerByUid(uid);
-    Turn thisTurn = getSpecificTurnsAgo(1);
-    GameStateInfo gameStateInfo = new GameStateInfo(thisGame,
-        thisTurn,  thisGame.getPlayers().get(0),thisGame.getPlayers().get(1));
-    CardType cardType = CardType.valueOf(cardName);
-    switch(thisPlayer.getGameOrder()){
-      case 1:
-        if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(0))
-            && stateMachine.getState().getId().equals(GameStates.PLAYER_1_BUYING)){
-          GameStateInfo gameState = gameLogic.buyTarget(cardType, thisGame.getPlayers().get(1), gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
-          return gameStateInfoTransferObject;
-        }
-
-      case 2:
-        if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(1))
-            && stateMachine.getState().getId().equals(GameStates.PLAYER_2_BUYING)){
-          GameStateInfo gameState = gameLogic.buyTarget(cardType, thisGame.getPlayers().get(1), gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
-          return gameStateInfoTransferObject;
-        }
-    }
-
-    GameStateInfoTransferObject transfer = buildTransferObjectWithWrapper(gameStateInfo, false, "Invalid Action");
-    return transfer;
-  }
-
-  public Game playCard(String cardName, Game game, Player player){
-    Turn thisTurn = getCurrentTurn();d
-    Card card = cardRepository.getByLocationAndPlayerAndType()
-    CardType cardType = CardType.valueOf(cardName);
-    switch(thisPlayer.getGameOrder()){
-      case 1:
-
-        if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(0))
-            && stateMachine.getState().getId().equals(GameStates.PLAYER_1_ACTION)){
-          GameStateInfo gameState = gameLogic.playCardWithCards(cardType, thisGame.getPlayers().get(0), cards, gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
-          return gameStateInfoTransferObject;
-        }
-
-      case 2:
-        if (gameStateInfo.getCurrentPlayerStateInfo().getPlayer().equals(thisGame.getPlayers().get(1))&&
-            stateMachine.getState().getId().equals(GameStates.PLAYER_2_ACTION)){
-          GameStateInfo gameState = gameLogic.playCardWithCards(cardType, thisGame.getPlayers().get(1), cards, gameStateInfo);
-          GameStateInfoTransferObject gameStateInfoTransferObject = buildTransferObject(gameState);
-          return gameStateInfoTransferObject;
-        }
-    }
-
-    GameStateInfoTransferObject transfer = buildTransferObjectWithWrapper(gameStateInfo, false, "Invalid Action");
-    return transfer;
-  }
-
-  @PostMapping("/{playerid}/discard")
   public GameStateInfoTransferObject discardForMilitia(@PathVariable ("gameid") int gameId,
       @PathVariable ("uid") String uid,
       @PathVariable ("cardname") String cardName, @RequestBody ArrayList<Card> cards){
@@ -619,5 +444,79 @@ private void draw(Player player){
     }
     return victoryCounter;
   }
+
+  private void constructNormalPlay(Game game, Turn turn, Player player, Card card, boolean hasSilver){
+    int currentActionsRemaining = player.getActionsRemaining();
+    player.setActionsRemaining(currentActionsRemaining -1 + card.getType().getExtraActions());
+
+    int currentBuysRemaining = player.getBuysRemaining();
+    player.setBuysRemaining(currentBuysRemaining-1+card.getType().getExtraBuys());
+
+    int currentBuyingPower = turn.getBuyingPower();
+    if(hasSilver){
+      currentBuyingPower+=card.getType().getExtraGoldIfSilver();
+    }
+    turn.setBuyingPower(currentBuyingPower+card.getType().getExtraGold());
+
+    for (int i = 0; i<card.getType().getDrawCards(); i++){
+      draw(player);
+    }
+
+  }
+
+  private void playCardProcessing(Game game, Turn turn, Player player, Card card, boolean hasSilver, List<String> otherCardsStrings){
+    constructNormalPlay(game, turn, player, card, hasSilver);
+    ArrayList<Card> otherCards = new ArrayList<>();
+    switch(card.getType()){
+      case MILITIA:
+        break;
+      case WORKSHOP:
+        int limit = 4;
+        Card buyCard = cardRepository.getAllByTypeAndLocation(Type.valueOf(otherCardsStrings.get(0)), Location.STACK).get().get(0);
+        if (buyCard.getType().getCost()<=4){
+          buyCard.setLocation(Location.HAND);
+          buyCard.setPlayer(player);
+        }
+        break;
+      case CELLAR:
+        for(String s: otherCardsStrings) {
+
+        }
+        break;
+      case MINE:
+        break;
+      case REMODEL:
+        break;
+
+
+    }
+  }
+
+  private boolean testForGameEnd(Game game){
+    int emptyStacks = 0;
+    boolean provincesEmpty = false;
+    if (cardRepository.countAllByTypeAndLocation(Type.PROVINCE, Location.STACK).get()==0){
+      return true;
+    }
+    for (Type type : Type.values()){
+      if (cardRepository.countAllByTypeAndLocation(type, Location.STACK).get()==0 && !type.equals(Type.PROVINCE)){
+        emptyStacks+=1;
+      }
+    }
+    if (emptyStacks>=3){
+      return true;
+    }
+    return false;
+  }
+  private String whoWins(Game game, Player player1, Player player2){
+    if (calculateVictoryPoints(player1) > calculateVictoryPoints(player2)){
+      return player1.getDisplayName();
+    }else if (calculateVictoryPoints(player2) > calculateVictoryPoints(player1)){
+      return player2.getDisplayName();
+    }else{
+      return "Tie";
+    }
+  }
+
 }
 
