@@ -68,8 +68,8 @@ public class Game implements FlatGame {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "current_player_id")
-  @JsonSerialize(as= FlatPlayer.class)
-  private Player currentPlayer;
+  @JsonSerialize(as= FlatGameGamePlayer.class)
+  private GamePlayer currentPlayer;
 
   @OneToMany(mappedBy = "game", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @OrderBy(value = "id")
@@ -82,6 +82,8 @@ public class Game implements FlatGame {
   private List<Turn> turns  = new LinkedList<>();
 
   private boolean lastPlayAccepted;
+
+  private String whoWins;
 
   @Override
   public Long getId() {
@@ -108,12 +110,12 @@ public class Game implements FlatGame {
     return updated;
   }
 
-  public Player getCurrentPlayer() {
+  public GamePlayer getCurrentPlayer() {
     return currentPlayer;
   }
 
-  public void setCurrentPlayer(
-      Player currentPlayer) {
+  public void setCurrentGamePlayer(
+      GamePlayer currentPlayer) {
     this.currentPlayer = currentPlayer;
   }
 
@@ -156,5 +158,13 @@ public class Game implements FlatGame {
 
   public void setLastPlayAccepted(boolean lastPlayAccepted) {
     this.lastPlayAccepted = lastPlayAccepted;
+  }
+
+  public String getWhoWins() {
+    return whoWins;
+  }
+
+  public void setWhoWins(String whoWins) {
+    this.whoWins = whoWins;
   }
 }

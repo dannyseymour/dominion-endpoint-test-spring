@@ -34,4 +34,8 @@ public interface CardRepository extends CrudRepository<Game, Long> {
   Optional<List<Card>> getAllByTypeAndLocation(Type type, Location stack);
 
   Optional<Integer> countAllByTypeAndLocation(Type type, Location location);
+
+  Optional<ArrayList<Card>> getAllByGamePlayer(GamePlayer gamePlayer);
+
+  Optional<Integer> countAllByGamePlayerAndLocation(GamePlayer gamePlayer, Location hand);
 }

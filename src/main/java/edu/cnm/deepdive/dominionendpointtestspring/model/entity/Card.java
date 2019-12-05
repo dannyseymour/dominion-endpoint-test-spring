@@ -102,11 +102,11 @@ public class Card {
   }
 
   @NonNull
-  public GamePlayer getPlayer() {
+  public GamePlayer getGamePlayer() {
     return player;
   }
 
-  public void setPlayer(@NonNull GamePlayer player) {
+  public void setGamePlayer(@NonNull GamePlayer player) {
     this.player = player;
   }
 

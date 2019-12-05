@@ -1,6 +1,7 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.dao;
 
 
+import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import java.util.Optional;
 import javax.swing.text.html.Option;
@@ -18,4 +19,6 @@ public interface PlayerRepository extends CrudRepository<Player,Long> {
 
 
   Optional<Player> findByOauthKey(String uid);
+
+  Player getPlayerByGamePlayerAndGameId(GamePlayer gamePlayer, Long id);
 }

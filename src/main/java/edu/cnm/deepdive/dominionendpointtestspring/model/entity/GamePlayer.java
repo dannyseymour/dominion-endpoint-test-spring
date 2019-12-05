@@ -1,5 +1,6 @@
 package edu.cnm.deepdive.dominionendpointtestspring.model.entity;
 
+import com.sun.media.jfxmedia.events.PlayerStateEvent.PlayerState;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatGameGamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.view.FlatPlayerGamePlayer;
 import java.util.Date;
@@ -40,6 +41,8 @@ public class GamePlayer implements FlatGameGamePlayer, FlatPlayerGamePlayer {
   @JoinColumn (name= "player_id", nullable = false, updatable = false)
   private Player player;
 
+
+  private GamePlayerState playerState;
 
   private int actionsRemaining;
 
@@ -89,4 +92,19 @@ public class GamePlayer implements FlatGameGamePlayer, FlatPlayerGamePlayer {
   public void setPlayer(@NonNull Player player) {
     this.player = player;
   }
+
+  public GamePlayerState getGamePlayerState() {
+    return playerState;
+  }
+
+  public void setGamePlayerState(GamePlayerState playerState) {
+    this.playerState = playerState;
+  }
+
+  public enum GamePlayerState{
+    ACTIVE,
+    PASSIVE;
+  }
+
+
 }

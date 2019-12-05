@@ -2,14 +2,13 @@ package edu.cnm.deepdive.dominionendpointtestspring.controller;
 
 import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GamePlayerRepository;
 import edu.cnm.deepdive.dominionendpointtestspring.model.dao.GameRepository;
-import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Card;
+import edu.cnm.deepdive.dominionendpointtestspring.model.dao.PlayerRepository;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Game;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.GamePlayer;
 import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Player;
 import edu.cnm.deepdive.dominionendpointtestspring.service.GameLogic;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,15 +37,19 @@ public class GameController {
 
   private final GameLogic gameLogic;
 
+  private final PlayerRepository playerRepository;
+
   @Autowired
   public GameController(
       GameRepository gameRepository,
       GamePlayerRepository gamePlayerRepository,
-      GameLogic gameLogic) {
+      GameLogic gameLogic,
+      PlayerRepository playerRepository) {
 
     this.gameRepository = gameRepository;
     this.gamePlayerRepository = gamePlayerRepository;
     this.gameLogic = gameLogic;
+    this.playerRepository = playerRepository;
   }
 
   @PostMapping(value = "newgame",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
@@ -57,7 +60,8 @@ public class GameController {
      */
     Game game = gameRepository.findFirstByCurrentState(GameState.WAITING)
         .filter(
-            g -> g.getGamePlayers().stream().noneMatch(gp -> gp.getPlayer().getId()==player.getId())
+            g -> g.getGamePlayers().stream().noneMatch(gp -> gp.getPlayer().getId()
+                .equals(player.getId()))
         )
         .orElse(new Game());
     GamePlayer gamePlayer = new GamePlayer();
@@ -67,7 +71,7 @@ public class GameController {
     if (game.getGamePlayers().size()==2) {
       GamePlayer gamePlayer1 = game.getGamePlayers().get(0);
       GamePlayer gamePlayer2 = game.getGamePlayers().get(1);
-      game.setCurrentPlayer(gamePlayer1.getPlayer());
+      game.setCurrentGamePlayer(gamePlayer1);
       game= gameLogic.initializeGame(game, gamePlayer1, gamePlayer2);
     }
     else if (game.getGamePlayers().size()==1){
@@ -94,10 +98,10 @@ public class GameController {
     if (player.equals(game.getCurrentPlayer())) {
       GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
       if (cards == null){
-        game = gameLogic.playCard(cardName, game, gamePlayer);
+        game = gameLogic.playCard(cardName, game, gamePlayer, null);
         return gameRepository.save(game);
       }else{
-       game= gameLogic.playCardWithCards(cardName,game, gamePlayer, (ArrayList<String>) cards);
+       game= gameLogic.playCard(cardName,game, gamePlayer, (ArrayList<String>) cards);
         return gameRepository.save(game);
       }
     }
@@ -144,14 +148,14 @@ public class GameController {
   }
 
 
-  @PostMapping("/discard/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping("/discard/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game discardCard(Authentication authentication, @PathVariable("gameid") int gameId,
-      @PathVariable("cardname") String cardName) {
+      @RequestBody List<String> cardNames) {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
       GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
-      game = gameLogic.discard(cardName, game, gamePlayer);
+      game = gameLogic.discardForMilitia(game, gamePlayer, cardNames);
       return gameRepository.save(game);
     }
     else{
@@ -166,5 +170,9 @@ public class GameController {
 
   private GamePlayer matchPlayerToGamePlayer(Player player){
     return gamePlayerRepository.getByPlayer(player);
+  }
+
+  private Player matchGamePlayerToPlayer(GamePlayer gamePlayer, Game game){
+    return playerRepository.getPlayerByGamePlayerAndGameId(gamePlayer, game.getId());
   }
 }
