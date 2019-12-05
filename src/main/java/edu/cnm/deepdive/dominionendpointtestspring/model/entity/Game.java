@@ -81,6 +81,8 @@ public class Game implements FlatGame {
   @JsonIgnore
   private List<Turn> turns  = new LinkedList<>();
 
+
+
   private boolean lastPlayAccepted;
 
   private String whoWins;
@@ -167,4 +169,7 @@ public class Game implements FlatGame {
   public void setWhoWins(String whoWins) {
     this.whoWins = whoWins;
   }
+
+
+
 }

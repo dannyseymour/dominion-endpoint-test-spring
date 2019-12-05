@@ -98,7 +98,7 @@ public class GameController {
     if (player.equals(game.getCurrentPlayer())) {
       GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
       if (cards == null){
-        game = gameLogic.playCard(cardName, game, gamePlayer, null);
+        game = gameLogic.playCard(cardName, game, gamePlayer);
         return gameRepository.save(game);
       }else{
        game= gameLogic.playCard(cardName,game, gamePlayer, (ArrayList<String>) cards);
@@ -112,18 +112,13 @@ public class GameController {
 
   @PostMapping("/buy/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game buyCard(Authentication authentication, @PathVariable("gameid") int gameId,
-      @PathVariable("cardname") String cardName, @RequestBody List<String>cards) {
+      @PathVariable("cardname") String cardName) {
     Player player = (Player) authentication.getPrincipal();
     Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
     if (player.equals(game.getCurrentPlayer())) {
       GamePlayer gamePlayer = matchPlayerToGamePlayer(player);
-      if (cards == null) {
         game= gameLogic.buyCard(cardName, game, gamePlayer);
         return gameRepository.save(game);
-      } else {
-        game= gameLogic.buyCardWithCards(cardName, game, gamePlayer, (ArrayList<String>) cards);
-        return gameRepository.save(game);
-      }
     }
     else{
       return game;
@@ -161,6 +156,13 @@ public class GameController {
     else{
       return game;
     }
+  }
+
+  @GetMapping("/plays/{gameid}")
+  public List<String> getPlaysFromLastTurn(Authentication authentication, @PathVariable("gameid")int gameId){
+    Player player = (Player) authentication.getPrincipal();
+    Game game = gameRepository.findByIdAndPlayer(gameId,player.getId()).get();
+    return gameLogic.getListOfPlaysStrings(game);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

@@ -19,6 +19,7 @@ import edu.cnm.deepdive.dominionendpointtestspring.model.entity.Turn;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameState;
 import edu.cnm.deepdive.dominionendpointtestspring.state.GameStateInfo;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import javax.transaction.Transactional;
@@ -136,34 +137,27 @@ public class GameLogic {
       return game;
     }
   }
-
-
-  public Game buyCard(String cardName, Game game, GamePlayer player) {
-    Card.Type cardType = Card.Type.valueOf(cardName.toUpperCase());
+  public Game buyCard(String cardType, Game game, GamePlayer player) {
     Turn turn = getCurrentTurn(game);
-
     int buyingPower = turn.getBuyingPower();
-    if (buyingPower > 0) {
-
-    } else {
-      gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(buyCard);
-
-      int buysRemaining = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower() - 1;
-      if (buysRemaining <= 0) {
-        gameStateInfo.getCurrentPlayerStateInfo().getPlayer().setNumBuy(buysRemaining);
-        // gameStateInfo.saveAll();
-        endTurn(getCurrentGame(), gameStateInfo.getCurrentPlayer().get());
-        return gameStateInfo;
-      } else {
-        gameStateInfo.getCurrentPlayerStateInfo().getPlayer().setNumBuy(buysRemaining);
-        //  gameStateInfo.saveAll();
-        return gameStateInfo;
-      }
+    ArrayList<Card> currentHand = (ArrayList<Card>) cardRepository
+        .getAllByGamePlayerAndLocation(player, Location.HAND).get();
+    Card card = cardRepository.getByType(Type.valueOf(cardType)).get();
+    int stackCount = cardRepository.countAllByTypeAndLocation(card.getType(), Location.STACK).get();
+    if (stackCount ==0){
+      return game;
     }
-    return gameStateInfo;
-    initTurn(game game, )
-    return game;
+    if (card.getType().getCost()<=buyingPower) {
+      card.setLocation(Location.DISCARD);
+      buyingPower-=card.getType().getCost();
+      return game;
+    }
+    else{
+      return game;
+    }
+
   }
+
 
 
   public Game endPhase(Game game, GamePlayer gamePlayer) {
@@ -182,6 +176,9 @@ public class GameLogic {
           break;
         case BUYING:
           activePlayer.setGamePlayerState(GamePlayerState.PASSIVE);
+          discard(activePlayer, cardRepository.getAllByGamePlayerAndLocation(activePlayer,Location.HAND).get());
+          shuffleAndDraw(activePlayer);
+
           initTurn(game, inactivePlayer, false);
           break;
       }
@@ -262,16 +259,36 @@ public class GameLogic {
   }
 
   private void shuffleAndDraw(GamePlayer player) {
-    List<Card> cardsInDraw = cardRepository
-        .getAllByGamePlayerAndLocation(player, Location.DRAW_PILE).get();
+    List<Card> cardsInDraw = new LinkedList<>();
     List<Card> cardsInHand = new LinkedList<>();
-
-    //SHUFFLE
-    //DRAW
+    List<Card> cardsInDiscard = new LinkedList<>();
+    List<Card> combined = new LinkedList<>();
+    if (cardRepository
+        .getAllByGamePlayerAndLocation(player, Location.DRAW_PILE).isPresent()){
+      cardsInDraw =cardRepository
+          .getAllByGamePlayerAndLocation(player, Location.DRAW_PILE).get();
+      cardsInDraw.addAll(cardsInDiscard);
+      Collections.shuffle(cardsInDraw);
+    }else{
+      Collections.shuffle(cardsInDiscard);
+      cardsInDraw.addAll(cardsInDiscard);
+      cardsInDiscard.clear();
+    }
+    for (Card card: cardsInDraw){
+      card.setLocation(Location.DRAW_PILE);
+    }
+    for (int i = 0; i<5; i++){
+      cardsInHand.add(cardsInDraw.get(i));
+      cardsInDraw.remove(i);
+      cardsInHand.get(i).setLocation(Location.HAND);
+    }
+    cardRepository.saveAll(cardsInHand);
+    cardRepository.saveAll(cardsInDraw);
   }
 
 
-  private List<String> getListOfPlaysStrings(Turn turn) {
+  public List<String> getListOfPlaysStrings(Game game) {
+    Turn turn = getPreviousTurn(game);
     List<Play> plays = playRepository.getAllByTurn(turn).get();
     List<String> playStrings = new ArrayList<>();
     for (Play play : plays) {
@@ -416,7 +433,7 @@ public class GameLogic {
         break;
       case CELLAR:
         for (String s : otherCardsStrings) {
-
+            
         }
         break;
       case MINE:
