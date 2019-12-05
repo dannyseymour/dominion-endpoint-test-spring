@@ -447,7 +447,7 @@ public class Card {
     }
 
     public abstract GameStateInfo play(GameStateInfo gameStateInfo,
-        Optional<List<Card>> additionalCards);
+       List<String> additionalCards);
 
 
   }

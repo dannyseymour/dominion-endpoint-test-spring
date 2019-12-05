@@ -76,49 +76,47 @@ public class GameLogic {
     return gameRepository.getFirstByGamePlayers(players);
   }
 
-
-  public Game playCardWithCards(String cardType, Game game, Player player, ArrayList<String> cards) {
+  public Game playCardWithCards(String cardType, Game game, Player player, ArrayList<String> cardStrings) {
     Turn turn = getCurrentTurn(game);
+    if(cardStrings.size()==0){
+      cardStrings = new ArrayList<String>();
+    }
     GameStateInfo gameStateInfo = new GameStateInfo(game, turn, player, game.getCurrentState());
-
-
 
     if(cardRepository.getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).isPresent()) {
       Card playingCard =cardRepository.getByLocationAndPlayerAndType(Location.HAND, player, Type.valueOf(cardType)).get();
-          playingCard.getType().play(gameStateInfo, Optional.ofNullable(cards));
+          playingCard.getType().play(gameStateInfo, cardStrings);
+          playingCard.setLocation(Location.DISCARD);
+
       if(player.getActionsRemaining()==0){
-        endActions(gameStateInfo);
+        calculateBuyingPowerAfterActions(player, turn);
         game.setCurrentState(GameState.BUYING);
       }
       return game;
     }else{
-
+      return game;
     }
+  }
 
+  private void calculateBuyingPowerAfterActions(Player player, Turn turn) {
+    ArrayList<Play> actionPlays = (ArrayList<Play>) playRepository.getAllByTurnAndType(turn).get();
+    int buyingPower = turn.getBuyingPower();
 
+    for (Play play: actionPlays) {
+      buyingPower+= play.getCard().getType().getExtraGold();
+    }
+    turn.setBuyingPower(buyingPower);
   }
 
 
 
-  /** public void initGame(String oAuthKey){
-   this.game= new Game();
-   game.setStacks(initializeStacks(game.getStacks()));
-   gameRepository.save(game);
-   //TODO modify to bring in lobby, Oauth credentials, etc
-
-   playerRepository.save(playerService.getOrCreatePlayer(oAuthKey));
-   signalMachine(GameEvents.START_GAME);
-   }
-
-   */
-
-  public GameStateInfo buyCard(String cardName, Game game, Player player){
+  public Game buyCard(String cardName, Game game, Player player){
     Card.Type cardType = Card.Type.valueOf(cardName.toUpperCase());
     Turn turn = getCurrentTurn(game);
 
-    int buyingPower = gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower()- buyCard.getCost();
-    if (buyingPower < 0){
-      endTurn(getCurrentGame(), playerRepository.getPlayerById((long) playerId).get());
+   int buyingPower = turn.getBuyingPower();
+    if (buyingPower > 0){
+
     }else{
       gameStateInfo.getCurrentPlayerStateInfo().getDiscardPile().addToDiscard(buyCard);
       switch(cardType){
@@ -143,6 +141,8 @@ public class GameLogic {
       }
     }
     return gameStateInfo;
+    initTurn(game game, )
+    return game;
   }
   public boolean testForVictory(){
 
@@ -208,11 +208,7 @@ public class GameLogic {
     gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.ACTION);
     // gameStateInfo.saveAll();
   }
-  public void endActions(GameStateInfo gameStateInfo){
-    gameStateInfo.getCurrentPlayer().get().setPlayerState(PlayerState.BUYING);
-    gameStateInfo.getCurrentPlayerStateInfo().calculateBuyingPower();
-    // gameStateInfo.saveAll();
-  }
+
 
   public void endTurn(Game game, Player player){
    Turn turn = getCurrentTurn();

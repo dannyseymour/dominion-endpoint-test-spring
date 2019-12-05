@@ -17,4 +17,6 @@ public interface PlayRepository extends CrudRepository<Play, Integer> {
   Optional<List<Play>> getAllByTurn(Turn turn);
 
   Optional<List<Play>> getAllByGameAndTurn(Game game, Turn previousTurn);
+
+  Optional<List<Play>> getAllByTurnAndType(Turn turn);
 }
