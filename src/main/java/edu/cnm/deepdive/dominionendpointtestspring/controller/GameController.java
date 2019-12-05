@@ -61,8 +61,10 @@ public class GameController {
     stacks.put("Mine",10);
     stacks.put("Trash",0);
     List<String> plays = new ArrayList<>();
-    plays.add("played Market");
-    plays.add("played Copper");
+    plays.add("Player 1: played Copper");
+    plays.add("Player 1: played Copper");
+    plays.add("Player 1: played Copper");
+    plays.add("Player 1: bought Merchant");
     //TODO test if plays are null
     return new GameStateInfo(gameId, initialCards, 3, 3, 1, 1,
         4, false, stacks, plays, PhaseState.ACTING, false, true);
