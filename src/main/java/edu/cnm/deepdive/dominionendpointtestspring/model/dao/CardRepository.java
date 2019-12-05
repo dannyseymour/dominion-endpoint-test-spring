@@ -38,4 +38,6 @@ public interface CardRepository extends CrudRepository<Game, Long> {
   Optional<ArrayList<Card>> getAllByGamePlayer(GamePlayer gamePlayer);
 
   Optional<Integer> countAllByGamePlayerAndLocation(GamePlayer gamePlayer, Location hand);
+
+  ArrayList<Card> getAllByGamePlayerAndLocationOrderByOrderInLocation(GamePlayer gamePlayer, Location location);
 }

@@ -130,7 +130,8 @@ public class Card {
     HAND,
     DISCARD,
     DRAW_PILE,
-    STACK;
+    STACK,
+    TRASH;
   }
 
   public enum Type {

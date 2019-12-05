@@ -90,7 +90,7 @@ public class GameController {
 
 
 
-  @PostMapping("/action/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value="/action/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game doAction(Authentication authentication, @PathVariable("gameid") int gameId,
       @PathVariable("cardname") String cardName, @RequestBody List<String> cards) {
    Player player = (Player) authentication.getPrincipal();
@@ -110,7 +110,7 @@ public class GameController {
     }
   }
 
-  @PostMapping("/buy/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value="/buy/{gameid}/{cardname}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game buyCard(Authentication authentication, @PathVariable("gameid") int gameId,
       @PathVariable("cardname") String cardName) {
     Player player = (Player) authentication.getPrincipal();
@@ -127,7 +127,7 @@ public class GameController {
   }
 
 
-  @PostMapping("/endphase/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value="/endphase/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game endPhase(Authentication authentication, @PathVariable("gameid") int gameId) {
 
     Player player = (Player) authentication.getPrincipal();
@@ -143,7 +143,7 @@ public class GameController {
   }
 
 
-  @PostMapping("/discard/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value="/discard/{gameid}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
   public Game discardCard(Authentication authentication, @PathVariable("gameid") int gameId,
       @RequestBody List<String> cardNames) {
     Player player = (Player) authentication.getPrincipal();
